@@ -1,5 +1,6 @@
 import {calculateFootprint} from './satGeo'
 import {SCALE_FACTOR, EARTH_RADIUS_SCALED, OVERLAPPING_FOOTPRINT_FACTOR} from '../config'
+import * as THREE from 'three';
 
 /**
  * Calculates the polar configuration of an architecture
@@ -32,3 +33,7 @@ export function calcNumSats(arch) {
   const { planes, satellitesPerPlane } = getPolarConfiguration(arch.e, arch.a)
   return planes * satellitesPerPlane
 }
+
+export const Xaxis = new THREE.Vector3(1, 0, 0)
+export const Yaxis = new THREE.Vector3(0, 1, 0)
+export const Zaxis = new THREE.Vector3(0, 0, 1)

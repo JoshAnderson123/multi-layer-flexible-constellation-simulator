@@ -283,6 +283,7 @@ export function matchConstantsTrad(x, varParams, constParams) {
 
 
 export function parseConst(id) {
+  if (!document.querySelector(id)) return null
   return round(parseFloat(document.querySelector(id).value), 6)
 }
 

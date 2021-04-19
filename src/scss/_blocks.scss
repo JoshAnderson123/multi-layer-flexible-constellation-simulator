@@ -24,6 +24,10 @@
   font: 400 1.8rem "Lato", sans-serif;
 }
 
+.font-title3 {
+  font: 400 1.2rem "Lato", sans-serif;
+}
+
 .font-grid-small {
   font: 400 1.1rem "Lato", sans-serif;
 }
@@ -328,6 +332,14 @@
   background-color: $color-dark-2;
 }
 
+.c-d3 {
+  color: $color-dark-3;
+}
+
+.bc-d3 {
+  background-color: $color-dark-3;
+}
+
 .c-l1 {
   color: $color-light-1;
 }
@@ -343,7 +355,6 @@
 .bc-l2 {
   background-color: $color-light-2;
 }
-
 
 .bor-field {
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
@@ -431,4 +442,8 @@
 
 .flip90 {
   transform: rotate(-90deg);
+}
+
+.none {
+  display: none;
 }
