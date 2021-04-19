@@ -1,0 +1,434 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap");
+
+
+
+.grid {
+  display: grid;
+}
+
+/////// FONT & TEXT ///////
+
+.font-btn {
+  font: 400 1.2rem "Lato", sans-serif;
+}
+
+.font-grid {
+  font: 400 1rem "Consolas", sans-serif;
+}
+
+.font-title {
+  font: 400 1.5rem "Lato", sans-serif;
+}
+
+.font-title2 {
+  font: 400 1.8rem "Lato", sans-serif;
+}
+
+.font-grid-small {
+  font: 400 1.1rem "Lato", sans-serif;
+}
+
+.font-sim-preview {
+  font: 400 0.9rem "Consolas", sans-serif;
+}
+
+.font-result-data {
+  font: 400 1.1rem "Consolas", sans-serif;
+}
+
+.font-dropdown {
+  font: 400 0.9rem "Consolas", sans-serif;
+}
+
+.font-small {
+  font: 400 1rem "Lato", sans-serif;
+}
+
+.font-heatmap {
+  font: 400 0.8rem "Consolas", sans-serif;
+}
+
+.ta-l {
+  text-align: left;
+}
+
+.ta-r {
+  text-align: right;
+}
+
+.ta-c {
+  text-align: center;
+}
+
+.ta-j {
+  text-align: justify;
+}
+
+.ws-pre {
+  white-space: pre;
+}
+
+.sh {
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/////// POSITIONING ///////
+
+.rel {
+  position: relative;
+}
+
+.abs {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.f {
+  width: 100%;
+  height: 100%;
+}
+
+.fvwh {
+  width: 100vw;
+  height: 100vh;
+}
+
+.ff {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.w100 {
+  width: 100%;
+}
+
+.wpage {
+  width: 1100px;
+}
+
+.h100 {
+  height: 100%;
+}
+
+.mh100 {
+  min-height: 100%;
+}
+
+.hf {
+  height: 100vh;
+}
+
+.db {
+  display: block;
+}
+
+.di {
+  display: inline;
+}
+
+.dib {
+  display: inline-block;
+}
+
+.p-form {
+  padding-left: 8px;
+}
+
+.psc {
+  place-self: center;
+}
+
+.pss {
+  place-self: flex-start center;
+}
+
+.pse {
+  place-self: end center;
+}
+
+.bs-b {
+  box-sizing: border-box;
+}
+
+.bs-c {
+  box-sizing: content-box;
+}
+
+/////// FLEXBOX ///////
+
+.FC {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.FCS {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.FE {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.FES {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.FEV {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.FCV {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.FS {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.FA {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.FSS {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.FSV {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.FSVS {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.FSVE {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+}
+
+.FB {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.FBV {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.FBVS {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.FBS {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.FA {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.rig {
+  // flex - rigid
+  flex: 0 0 auto;
+}
+
+.grow {
+  // flex - grow
+  flex: 1 1 auto;
+}
+
+/////// IMAGES ///////
+
+.of-cont {
+  object-fit: contain;
+}
+
+.of-cover {
+  object-fit: cover;
+}
+
+.of-fill {
+  object-fit: fill;
+}
+
+/////// COLOURING ///////
+
+.c1 {
+  color: $theme-color-1;
+}
+
+.bc1 {
+  background-color: $theme-color-1;
+}
+
+.c-w {
+  color: $color-warning;
+}
+
+.bc-w {
+  background-color: $color-warning;
+}
+
+.c-d1 {
+  color: $color-dark-1;
+}
+
+.bc-d1 {
+  background-color: $color-dark-1;
+}
+
+.c-d2 {
+  color: $color-dark-2;
+}
+
+.bc-d2 {
+  background-color: $color-dark-2;
+}
+
+.c-l1 {
+  color: $color-light-1;
+}
+
+.bc-l1 {
+  background-color: $color-light-1;
+}
+
+.c-l2 {
+  color: $color-light-2;
+}
+
+.bc-l2 {
+  background-color: $color-light-2;
+}
+
+
+.bor-field {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.bor-field-r {
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.bor-field-f {
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+/////// MISC ///////
+
+.bsh {
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bshbtn {
+  box-shadow: 0px 7px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bsh2 {
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.6);
+}
+
+.bsh3 {
+  box-shadow: 0px 25px 55px rgba(0, 0, 0, 0.2);
+}
+
+.ptr {
+  cursor: pointer;
+}
+
+.b-none {
+  border: none;
+}
+
+.pe-none {
+  pointer-events: none;
+}
+
+.us-none {
+  user-select: none;
+}
+
+.res-none {
+  resize: none;
+}
+
+.front {
+  z-index: 10000;
+}
+
+.hoverGrow {
+  transform: scale(1);
+  transition: 0.1s;
+}
+
+.hoverGrow:hover {
+  transform: scale(1.05);
+}
+
+.hoverGrow2 {
+  transform: scale(1) rotate(0deg);
+  transition: 0.3s;
+}
+
+.hoverGrow2:hover {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.ov-h {
+  overflow: hidden;
+}
+
+.ovy-a {
+  overflow-y: auto;
+}
+
+.tran {
+  opacity: 0;
+}
+
+.flip90 {
+  transform: rotate(-90deg);
+}

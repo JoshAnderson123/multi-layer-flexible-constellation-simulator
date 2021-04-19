@@ -1,0 +1,25 @@
+#main-canvas {
+  // background-color: #ddd;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.dropdown-content {
+  display: none;
+}
+
+.dropdown-container:focus .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  background-color: #fff;
+}
+
+.dropdown-item:hover {
+  background-color: #f2f2f2;
+}
+
+.hm-text-color {
+  color: rgba(0,0,0,0.8)
+}
