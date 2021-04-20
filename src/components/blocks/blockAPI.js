@@ -13,6 +13,7 @@ import video from './Video';
 import iframe from './IFrame';
 import select from './Select';
 import option from './Option';
+import file from './File';
 
 export const Box = box
 export const Center = center
@@ -29,3 +30,4 @@ export const Video = video
 export const IFrame = iframe
 export const Select = select
 export const Option = option
+export const File = file

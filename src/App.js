@@ -14,8 +14,9 @@ function App() {
   const [inputs, setInputs] = useState(defaultInputs)
   const [results, setResults] = useState({})
 
-  function updateResults(res) {
+  function updateResults(res, ipt) {
     setResults(res)
+    if (ipt) setInputs(ipt)
     setPanel('results')
   }
 

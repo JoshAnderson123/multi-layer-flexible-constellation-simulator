@@ -287,7 +287,7 @@ export function parseConst(id) {
   return round(parseFloat(document.querySelector(id).value), 6)
 }
 
-export function copyToClipboard(HMResults) {
+export function copyHeatmapToClipboard(HMResults) {
 
   const rows = HMResults.config.varParams.v2.range.length
   const cols = HMResults.config.varParams.v1.range.length
@@ -304,16 +304,30 @@ export function copyToClipboard(HMResults) {
     tableStr += '</tr>'
   }
 
-
   tableStr += '</table>'
 
-  const elem = document.createElement('textarea');
-  elem.value = tableStr
-  document.body.appendChild(elem);
-  elem.select();
-  document.execCommand('copy');
-  document.body.removeChild(elem);
+  copyToClipboard(tableStr)
 }
+
+
+export function copyResultsToClipboard(inputs, results) {
+  const data = {inputs, results}
+  copyToClipboard(JSON.stringify(data))
+}
+
+
+export function copyToClipboard(value) {
+
+  navigator.clipboard.writeText(value)
+
+  // const elem = document.createElement('textarea');
+  // elem.value = value
+  // document.body.appendChild(elem);
+  // elem.select();
+  // document.execCommand('copy');
+  // document.body.removeChild(elem);
+}
+
 
 export function formatArcsPF(apf) { // Apf = arcs pareto-optimal families
   return apf.map(fam => ({
@@ -335,5 +349,24 @@ export function findxFlex(p, results, type) {
 
 // Returns relevant scenario data for the results (removes S - number of scenarios)
 export function scenarioData(s) {
-  return {r: s.r, rec: s.rec, σ: s.σ}
+  return { r: s.r, rec: s.rec, σ: s.σ }
+}
+
+
+export function openResultsFile(evt, updateResults) {
+
+  let file = evt.target.files[0];
+  let reader = new FileReader();
+
+  reader.onload = function (e) {
+    console.log(JSON.parse(e.target.result))
+    try {
+      let json = JSON.parse(e.target.result)
+      updateResults(json.results, json.inputs)
+    } catch (err) {
+      console.log(err)
+    }
+  };
+
+  return reader.readAsText(file);
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { cBad, cGood } from '../../config'
-import { copyToClipboard, formatHMItem } from '../../utils/utilGeneral'
+import { copyHeatmapToClipboard, formatHMItem } from '../../utils/utilGeneral'
 import { Center, Flex } from '../blocks/blockAPI'
 
 export default function HeatmapLegend({ HMResults, viewValues, setViewValues }) {
@@ -31,7 +31,7 @@ export default function HeatmapLegend({ HMResults, viewValues, setViewValues }) 
           </Center>
 
           <Center mt='50px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => setViewValues(p => !p)} o={viewValues ? '1' : '0.5'} >{`View Values: ${viewValues ? 'on' : 'off'}`}</Center>
-          <Center mt='10px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => copyToClipboard(HMResults)} >Copy to clipboard</Center>
+          <Center mt='10px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => copyHeatmapToClipboard(HMResults)} >Copy to clipboard</Center>
 
         </Flex>
 
