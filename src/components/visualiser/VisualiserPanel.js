@@ -5,6 +5,8 @@ import { defaultSim, render } from '../../config'
 import { Center, Flex } from '../blocks/blockAPI'
 import PanelTopBar from '../simulator/PanelTopBar'
 import VisualiserSideBar from './VisualiserSideBar'
+import VisualiserStatsPanelTop from './VisualiserStatsPanelTop'
+import VisualiserStatsPanelBottom from './VisualiserStatsPanelBottom'
 
 export const RenderContext = React.createContext()
 
@@ -16,11 +18,11 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
   let [playspeed, setPlayspeed] = useState(1)
   let [currentStep, setCurrentStep] = useState(0)
   let [visuResults, setVisuResults] = useState()
-  let prevStep = useRef(0)
+  let prevConstellation = useRef(0)
 
   function updateStep(func) {
     setCurrentStep(prev => {
-      prevStep.current = prev
+      prevConstellation.current = visuResults.layers[prev]
       return func(prev)
     })
   }
@@ -30,12 +32,15 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
     updateStep(prev => Math.min(prev + playspeed, defaultSim.steps - 1))
   }
 
+  function constellationChange() {
+    return JSON.stringify(visuResults.layers[currentStep]) !== JSON.stringify(prevConstellation.current)
+  }
+
   useEffect(() => {
 
     if (playing) setTimeout(incrementStep(), 30)
 
-
-    if (visuResults && JSON.stringify(visuResults.layers[currentStep]) !== JSON.stringify(visuResults.layers[prevStep.current])) {
+    if (visuResults && constellationChange()) {
       setConstellation(visuResults.layers[currentStep])
     }
 
@@ -54,6 +59,8 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
           />
           <Center cn='h100 grow rel'>
             <Visualiser renderCtx={renderCtx} constellation={constellation} />
+            {visuResults ? <VisualiserStatsPanelTop visuResults={visuResults} currentStep={currentStep} /> : null}
+            {visuResults ? <VisualiserStatsPanelBottom visuResults={visuResults} /> : null}
             <VisualiserOptions renderCtx={renderCtx} setRenderCtx={setRenderCtx} />
           </Center>
         </Flex>

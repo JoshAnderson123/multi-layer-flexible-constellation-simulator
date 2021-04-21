@@ -16,6 +16,7 @@ export function createSimulation(inputs, arcs) {
   const simulation = {}
   const [detScenario, detFinal] = deterministicScenario(T, μ, start, steps)
   const scenarios = stochasticScenarios(T, μ, σ, start, steps, numScenarios, detFinal)
+  let testScenario = pickTestScenario()
   const dt = T / steps
   const discountArr = Array(steps + 1).fill().map((_, i) => 1 / (1 + r) ** (dt * i))
   let L = {}
@@ -30,6 +31,7 @@ export function createSimulation(inputs, arcs) {
   simulation.runFlexVisual = (family, flexStratInputs) => runFlexVisual(family, flexStratInputs)
   simulation.maxMinDemand = () => maxMinDemand(scenarios)
   simulation.expectedDemand = () => detFinal
+  simulation.pickTestScenario = () => { testScenario = pickTestScenario() }
   simulation.L = L
 
   return simulation
@@ -62,15 +64,15 @@ export function createSimulation(inputs, arcs) {
   function runTradVisual(xTrad) {
 
     const dt = T / steps // # Steps / year
-
     const cap = xTrad.cap
 
     const results = {
-      demand: scenarios[Math.floor(Math.random() * scenarios.length)],
+      demand: testScenario,
       capacity: new Array(steps).fill(cap),
       cost: [],
       evolutions: new Array(steps).fill({}),
-      layers: new Array(steps).fill([{ e: xTrad.e, a: xTrad.a }])
+      layers: new Array(steps).fill([{ e: xTrad.e, a: xTrad.a }]),
+      family: xTrad
     }
 
     let LCCarr = [xTrad.costs.IDC + xTrad.costs.PC + xTrad.costs.LC] // Initial costs
@@ -167,14 +169,15 @@ export function createSimulation(inputs, arcs) {
 
     const { J, Lm, Ld } = flexStratInputs // Extract flexible strategy inputs
     const dt = T / steps // Calculate Time step (years)
-    const demand = scenarios[Math.floor(Math.random() * scenarios.length)]
 
     const results = {
-      demand: demand,
+      demand: testScenario,
       capacity: [],
       cost: [],
       evolutions: [],
       layers: [],
+      family,
+      strat: {J, Lm, Ld}
     }
 
     const OC = {} // Initialise Ongoing & Mantenance cost cache
@@ -193,14 +196,14 @@ export function createSimulation(inputs, arcs) {
     let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
     let curR = 0 // Initialise the current number of reconfigurations
 
-    for (let t = 1; t < demand.length; t++) { // Run through the scenario
+    for (let t = 1; t < testScenario.length; t++) { // Run through the scenario
 
       let LCCstep = 0 // Initialise LCC for this step
       const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
       results.capacity.push(totalCap)
       results.layers.push(layers.map(layer => ({ e: family.cfgs[layer].e, a: family.cfgs[layer].a })))
 
-      if (totalCap < capMax && demand[t] > totalCap) { // If constellation should evolve
+      if (totalCap < capMax && testScenario[t] > totalCap) { // If constellation should evolve
 
         // If a new layer should be added (NL evolution)
         if (numberOf(layers) < Lm && (t / steps) > Ld) {
@@ -422,5 +425,9 @@ export function createSimulation(inputs, arcs) {
   function prodCostMulti(n, family) {
     if (!(n in L)) L[n] = n ** b
     return family.prodCostSrc * L[n]
+  }
+
+  function pickTestScenario() {
+    return scenarios[Math.floor(Math.random() * scenarios.length)]
   }
 }

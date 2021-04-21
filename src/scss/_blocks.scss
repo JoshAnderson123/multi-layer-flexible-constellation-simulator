@@ -52,6 +52,22 @@
   font: 400 0.8rem "Consolas", sans-serif;
 }
 
+.font-stat-title {
+  font: 300 1.3rem "Lato", sans-serif;
+}
+
+.font-stat-title-big {
+  font: 400 1.8rem "Lato", sans-serif;
+}
+
+.font-stat-small {
+  font: 300 1rem "Lato", sans-serif;
+}
+
+.font-stat-medium {
+  font: 300 1.3rem "Lato", sans-serif;
+}
+
 .ta-l {
   text-align: left;
 }
@@ -354,6 +370,14 @@
 
 .bc-l2 {
   background-color: $color-light-2;
+}
+
+.c-ls {
+  color: $color-light-stat;
+}
+
+.bc-ls {
+  background-color: $color-light-stat;
 }
 
 .bor-field {

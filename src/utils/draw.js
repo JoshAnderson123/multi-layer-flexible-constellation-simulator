@@ -1,6 +1,6 @@
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, V_CANVAS_WIDTH, V_CANVAS_HEIGHT, layerColors } from '../config'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VP_TOP, VP_RIGHT, VP_BOTTOM, VP_LEFT, layerColors, defaultSim } from '../config'
 import { calcBoundaries } from './architectures';
-import { findxFlex, findxTrad } from './utilGeneral';
+import { drawRotatedText, findxFlex, findxTrad, formatCap } from './utilGeneral';
 
 export function drawArchTradespace(inputs, results, params) { //tradespace, inputs, xTrad, xFlexS, xFlexM
 
@@ -28,6 +28,8 @@ export function drawArchTradespace(inputs, results, params) { //tradespace, inpu
   drawAxis(ctx);
   drawTicks(ctx, boundaries)
   drawLabels(ctx, ['Capacity (Channels)', 0, 0], ['ELCC ($K)', -10, 0]);
+
+
 }
 
 
@@ -323,93 +325,231 @@ function drawTickD(ctx, inputs, SCALE_FACTOR) {
 
 ///////// Draw Visualisation Graph /////////
 
-export function drawVisualisationGraph(results, simulation, playing, currentStep) {
+export function drawVisualisationGraph(results, simulation, currentStep, canvasSize) {
+
   const c = document.getElementById("visu-canvas")
   const ctx = c.getContext("2d")
 
+  const V_CANVAS_WIDTH = canvasSize.w
+  const V_CANVAS_HEIGHT = canvasSize.h
+  const V_GRAPH_WIDTH = V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT
+  const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM
+
+  const demandStroke = 'rgba(180, 0, 0, 0.8)'
+  const capacityStroke = 'rgba(100, 100, 100, 1)'
+  const capMaxStroke = 'rgba(0, 0, 255, 1)'
+
+  const evolutionRadius = 5
+  const NLWidth = 3
+
   ctx.clearRect(0, 0, c.width, c.height)
-  ctx.fillStyle = `rgba(255,255,255,1)`
+  ctx.fillStyle = `rgba(240,240,240,1)`
   ctx.fillRect(0, 0, c.width, c.height)
+  ctx.fillStyle = `rgba(255,255,255,1)`
+  ctx.fillRect(VP_LEFT, VP_TOP, V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT, V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM)
 
   const SCALE_FACTOR = 1
   const MAX_DEMAND = Math.max(...results.demand)
   const MAX_CAPACITY = Math.max(...results.capacity)
-  const MAX_DC = Math.max(MAX_DEMAND, MAX_CAPACITY, simulation.inputs.capMax * 1.1)
-  const STEP = V_CANVAS_WIDTH / simulation.inputs.steps
+  const MAX_DC = Math.max(MAX_DEMAND, MAX_CAPACITY, simulation.inputs.capMax * 1.05)
+  const STEP = V_GRAPH_WIDTH / simulation.inputs.steps
+  const TICK_LEN = 7
 
   drawDemandLine()
   drawCapacityLine()
   drawCapMax()
+  drawVAxis()
+  drawXLabels()
+  drawYLabels()
+  drawTitles()
   drawEvolutions()
   drawStep()
+  drawLegend()
+
+  function sharpen(v) {
+    return Math.round(v) + 0.5
+  }
+
+  function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(sharpen(x1), sharpen(y1));
+    ctx.lineTo(sharpen(x2), sharpen(y2));
+    ctx.stroke();
+  }
 
   function calcY(v) {
-    return V_CANVAS_HEIGHT - ((v / MAX_DC) * V_CANVAS_HEIGHT * SCALE_FACTOR)
+    return sharpen(V_CANVAS_HEIGHT - VP_BOTTOM - ((v / MAX_DC) * V_GRAPH_HEIGHT * SCALE_FACTOR))
+  }
+
+  function calcX(v) {
+    return sharpen(VP_LEFT + v)
+  }
+
+  function drawEvolution(color, type, x, y) {
+    ctx.fillStyle = color
+    ctx.lineWidth = type === 'NL' ? NLWidth : 1
+    ctx.beginPath();
+    ctx.arc(x, y, evolutionRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = color
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.8)'
+    ctx.stroke();
   }
 
   function drawDemandLine() {
-    ctx.strokeStyle = 'rgba(160, 0, 0, 0.5)'
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = demandStroke
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(0, V_CANVAS_HEIGHT);
+    ctx.moveTo(calcX(0), calcY(0));
     for (let d = 1; d <= simulation.inputs.steps; d++) {
-      ctx.lineTo(STEP * d, calcY(results.demand[d]))
+      ctx.lineTo(calcX(STEP * d), calcY(results.demand[d]))
     }
     ctx.stroke();
   }
 
   function drawCapacityLine() {
-    ctx.strokeStyle = 'rgba(100, 100, 100, 1)'
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = capacityStroke
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(0, V_CANVAS_HEIGHT);
+    ctx.moveTo(calcX(0), calcY(0));
     for (let d = 1; d <= simulation.inputs.steps; d++) {
-      ctx.lineTo(STEP * d, calcY(results.capacity[d]));
+      ctx.lineTo(calcX(STEP * d), calcY(results.capacity[d]));
     }
     ctx.stroke();
   }
 
   function drawCapMax() {
-    ctx.strokeStyle = 'rgba(0, 0, 255, 1)'
+    ctx.strokeStyle = capMaxStroke
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, calcY(simulation.inputs.capMax));
-    ctx.lineTo(V_CANVAS_WIDTH, calcY(simulation.inputs.capMax));
-    ctx.stroke();
+    drawLine(calcX(0), calcY(simulation.inputs.capMax), V_CANVAS_WIDTH - VP_RIGHT, calcY(simulation.inputs.capMax))
+  }
+
+  function drawVAxis() {
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    ctx.lineWidth = 1;
+    drawLine(calcX(0), calcY(0), V_CANVAS_WIDTH - VP_RIGHT, calcY(0))
+    drawLine(calcX(-1), calcY(0), calcX(-1), VP_TOP)
   }
 
   function drawEvolutions() {
 
-    ctx.lineWidth = 2
-    ctx.strokeStyle = '#000000'
-    ctx.fillStyle = `#${layerColors[0]}`
-    ctx.beginPath();
-    ctx.arc(0, calcY(0), 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    // Draw initial deployment
+    drawEvolution(`#${layerColors[0]}`, 'NL', calcX(0), calcY(0))
 
     for (let d = 1; d <= simulation.inputs.steps; d++) {
       if (results.evolutions[d]?.evolution) {
-
-        ctx.fillStyle = `#${layerColors[results.evolutions[d].layer]}`
-        // if (results.evolutions[d].evolution === 'NL') ctx.fillStyle = '#ff38af'
-        // else ctx.fillStyle = '#00cd8a'
-
-        ctx.beginPath();
-        ctx.arc(STEP * d, calcY(results.capacity[d]), 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (results.evolutions[d].evolution === 'NL') ctx.stroke();
+        const color = `#${layerColors[results.evolutions[d].layer]}`
+        drawEvolution(color, results.evolutions[d].evolution, calcX(STEP * d), calcY(results.capacity[d]))
       }
     }
   }
 
   function drawStep() {
-    ctx.strokeStyle = 'rgba(100, 100, 100, 1)'
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)'
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(currentStep * STEP, 0);
-    ctx.lineTo(currentStep * STEP, V_CANVAS_HEIGHT);
-    ctx.stroke();
+    drawLine(calcX(currentStep * STEP), VP_TOP, calcX(currentStep * STEP), VP_TOP + V_GRAPH_HEIGHT)
+  }
+
+  function drawXLabels() {
+
+    const TICK_STEP = V_GRAPH_WIDTH / defaultSim.T
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < defaultSim.T; i++) {
+      const x = VP_LEFT + (i * TICK_STEP)
+      const y = calcY(0)
+      drawLine(x, y, x, y + TICK_LEN)
+      ctx.fillText(2021 + i, x, y + TICK_LEN + 13);
+    }
+  }
+
+  function drawYLabels() {
+
+    const tickInterval = 5e6
+    ctx.font = "12px Arial";
+    ctx.textAlign = "right";
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    ctx.lineWidth = 1;
+
+    for (let cap = 0; cap < MAX_DC; cap += tickInterval) {
+      const x = VP_LEFT
+      const y = calcY(cap)
+      drawLine(x, y, x - TICK_LEN, y)
+      ctx.fillText(formatCap(cap), x - TICK_LEN - 4, y + 3);
+    }
+  }
+
+  function drawTitles() {
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+
+    ctx.fillText('Year', VP_LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 40);
+
+    drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Capacity', -Math.PI / 2)
+  }
+
+  function drawLegend() {
+    ctx.font = "12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)'
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    ctx.lineWidth = 1;
+
+    const ox = VP_LEFT + 10
+    const oy = VP_TOP + 10
+
+    ctx.fillRect(sharpen(ox), sharpen(oy), 210, 60)
+    ctx.strokeRect(sharpen(ox), sharpen(oy), 210, 60)
+
+    drawLegendLines()
+    drawLegendEvolutions()
+
+    function drawLegendLines() {
+      const lox = 10
+      const loy = 12
+      const ls = 17 // Line Spacing
+      const lw = 25 // Line width
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = demandStroke
+      drawLine(ox + lox, oy + loy + ls * 0, ox + lw, oy + loy + ls * 0)
+      ctx.fillText('demand', ox + lox + lw - 2, oy + loy + ls * 0 + 5);
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = capacityStroke
+      drawLine(ox + lox, oy + loy + ls * 1, ox + lw, oy + loy + ls * 1)
+      ctx.fillText('capacity', ox + lox + lw - 2, oy + loy + ls * 1 + 5);
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = capMaxStroke
+      drawLine(ox + lox, oy + loy + ls * 2, ox + lw, oy + loy + ls * 2)
+      ctx.fillText('maxCap', ox + lox + lw - 2, oy + loy + ls * 2 + 5);
+    }
+
+    function drawLegendEvolutions() {
+      const eox = 100
+      const eoy = 12
+      const es = 17 // Line Spacing
+
+      drawEvolution('#ffffff', 'NL', ox + eox, oy + eoy)
+      ctx.fillStyle = 'rgba(0,0,0,1)'
+      ctx.fillText('New Layer', ox + eox + 12, oy + eoy + 5);
+      
+      drawEvolution('#ffffff', 'recon', ox + eox, oy + eoy + es)
+      ctx.fillStyle = 'rgba(0,0,0,1)'
+      ctx.fillText('Reconfiguration', ox + eox + 12, oy + eoy + es + 5);
+
+    }
   }
 }

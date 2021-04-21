@@ -18,6 +18,14 @@ export function dollars(x) {
 }
 
 
+export function shortNumber(x) {
+  if (x > 1e9) return `${(x / 1e9).toFixed(2)}B`
+  if (x > 1e6) return `${(x / 1e6).toFixed(2)}M`
+  if (x > 1e3) return `${(x / 1e3).toFixed(2)}K`
+  return `${x.toFixed(2)}`
+}
+
+
 export function round(x, d = 0) {
   return Math.round(x * (10 ** d)) / (10 ** d)
 }
@@ -272,7 +280,7 @@ export function matchConstantsTrad(x, varParams, constParams) {
 }
 
 
-export function parseConst(id, str=false) {
+export function parseConst(id, str = false) {
   if (!document.querySelector(id)) return null
   if (str) return document.querySelector(id).value
   return round(parseFloat(document.querySelector(id).value), 6)
@@ -302,7 +310,7 @@ export function copyHeatmapToClipboard(HMResults) {
 
 
 export function copyResultsToClipboard(inputs, results) {
-  const data = {inputs, results}
+  const data = { inputs, results }
   copyToClipboard(JSON.stringify(data))
 }
 
@@ -368,4 +376,45 @@ export function openResultsFile(evt, updateResults) {
   };
 
   return reader.readAsText(file);
+}
+
+
+export function minMax(l, x, u) {
+  if (x < l) return l
+  if (x > u) return u
+  return x
+}
+
+export function formatCap(cap) {
+  if (cap === 0) return '0'
+  return `${round(cap / 1e6, 2)}M`
+}
+
+export function drawRotatedText(ctx, x, y, text, rad) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(rad);
+  ctx.fillText(text, 0, 0);
+  ctx.restore()
+}
+
+
+export function calculateDate(currentStep, totalSteps, T) {
+
+  const startDate = 2021
+  const stepsPerYear = totalSteps / T
+  const year = Math.floor(currentStep / stepsPerYear) + startDate
+  const stepsPerMonth = stepsPerYear / 12
+  const month = Math.floor((currentStep % stepsPerYear) / stepsPerMonth)
+  // const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  return `${months[month]} ${year}`
+}
+
+export function hexToRGBA(hex, opacity) {
+  const r = parseInt(`0x${hex.substring(0, 2)}`)
+  const g = parseInt(`0x${hex.substring(2, 4)}`)
+  const b = parseInt(`0x${hex.substring(4)}`)
+  return `rgba(${r},${g},${b},${opacity})`
 }

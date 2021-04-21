@@ -1,40 +1,57 @@
-import React, { useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { generateArchitectures } from '../../utils/architectures'
 import { createSimulation } from '../../utils/simulation'
 import { calcResultParamRanges } from '../../utils/tradespace'
-import { findFlex, findxFlex, findxTrad, parseConst, simulationInputs } from '../../utils/utilGeneral'
+import { findFlex, findxFlex, findxTrad, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
 import { Center, Flex, Grid, Img } from '../blocks/blockAPI'
 import { DropdownConst } from '../simulator/Dropdown'
-import { V_CANVAS_WIDTH, V_CANVAS_HEIGHT } from '../../config'
+import { VP_LEFT, VP_RIGHT } from '../../config'
 import { drawVisualisationGraph } from '../../utils/draw'
 
-export default function VisualiserSideBar({ inputs, results, visuResults, setVisuResults, playing, setPlaying, currentStep, updateStep, playspeed, setPlayspeed }) {
+export default function VisualiserSideBar({ inputs, results, visuResults, setVisuResults, playing, setPlaying, currentStep, updateStep, setCurrentStrat, setPlayspeed }) {
 
   const simulation = useRef()
+  const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 })
+
+  useEffect(() => {
+    const canavsContainer = document.querySelector('#canvas-container')
+    setCanvasSize({ w: canavsContainer.clientWidth, h: canavsContainer.clientHeight })
+  }, [])
+
   const paramRanges = calcResultParamRanges(inputs)
 
-  if (visuResults) drawVisualisationGraph(visuResults, simulation.current, playing, currentStep)
+  if (visuResults) drawVisualisationGraph(visuResults, simulation.current, currentStep, canvasSize)
 
-  function generateScenario() {
-
-    const stratType = parseConst('#c-type', 'string')
-    const optimum = parseConst('#c-opt', 'string')
-
-    const scen = {
+  function getScenarioParams() {
+    return {
       r: parseConst('#c-r'),
       rec: parseConst('#c-rec'),
       σ: parseConst('#c-v'),
       S: 100,
     }
+  }
 
+  function generateScenario() {
+
+    const scen = getScenarioParams()
     simulation.current = createSimulation(simulationInputs(scen))
+    runScenario()
+  }
+
+  function runScenario() {
+
+    if (!simulation.current) return
+
+    const scen = getScenarioParams()
+    const stratType = parseConst('#c-type', 'string')
+    const optimum = parseConst('#c-opt', 'string')
 
     if (stratType === 'xTrad') {
       const xTrad = findxTrad(scen, results)
       const fixedParams = { D: xTrad.D.toString(), P: xTrad.P.toString(), f: xTrad.f.toString(), I: xTrad.I.toString() }
       const flexParams = { e: xTrad.e.toString(), a: xTrad.a.toString() }
       const family = generateArchitectures(fixedParams, flexParams)[0]
-      setVisuResults(simulation.current.runTradVisual(family.cfgs[0]))
+      setVisuResults(simulation.current.runTradVisual({...family.cfgs[0], ...fixedParams}))
     }
     if (stratType === 'flexS' || stratType === 'flexM') {
 
@@ -84,73 +101,81 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
 
   function selectTimeFromGraph(e) {
     if (!simulation.current) return
-    const x = e.clientX
     const rect = e.target.getBoundingClientRect();
-    const proportion = (x - rect.x) / rect.width
+    const V_GRAPH_WIDTH = canvasSize.w - VP_LEFT - VP_RIGHT
+    const x = e.clientX - rect.x - VP_LEFT
+    const proportion = minMax(0, x / V_GRAPH_WIDTH, 1)
     const selectedStep = Math.round(proportion * simulation.current.inputs.steps)
     updateStep(() => selectedStep)
   }
 
   return (
-    <Flex w='600px' cn='h100 rig bc-l2' p='20px 0'>
+    <Flex f='FSVS' w='600px' cn='h100 rig bc-l2' p='20px 0 0 0'>
 
-      <Flex f='FSVS rel' p='0 20px'>
+      <Flex f='FSVS rel w100' p='0 20px'>
         <Flex f='FS' cn='font-title'>Inputs</Flex>
 
         <Center cn='w100 bc-d3' h='1px' m='10px 0' />
 
-        <Grid gtc='1fr 1.5fr' cn='w100'>
+        <Grid gtc='140px 1fr 160px' gg='20px' cn='w100'>
+
           <Flex f='FSV'>
             <Center cn='font-title3'>Scenario</Center>
-            <Flex f='FSV' cn='rel' l='-10px'>
-              <DropdownConst id='c-r' name='r' options={paramRanges.r} />
-              <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} />
-              <DropdownConst id='c-v' name='σ' options={paramRanges.σ} />
+            <Flex f='FSV' cn='rel' l='-18px' mt='5px'>
+              <DropdownConst id='c-r' name='r' options={paramRanges.r} onChange={generateScenario} />
+              <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} onChange={generateScenario} />
+              <DropdownConst id='c-v' name='σ' options={paramRanges.σ} onChange={generateScenario} />
             </Flex>
           </Flex>
+
           <Flex f='FSV'>
-            <Center cn='font-title3'>Strategy</Center>
-            <Grid gtc='1fr 1fr' cn='w100'>
-              <Flex f='FSV' cn='rel' l='10px'>
-                <DropdownConst id='c-type' name='Type' options={['xTrad', 'flexS', 'flexM']} onChange={generateScenario} />
-                <DropdownConst id='c-opt' name='Optimum' options={['true', 'false']} onChange={generateScenario} disabled={calcDisabled('opt')} />
+            <Center cn='font-title3' ml='30px'>Strategy</Center>
+            <Grid gtc='1fr 1.1fr' cn='w100' mt='5px'>
+              <Flex f='FSV' cn='rel' l='0px'>
+                <DropdownConst id='c-type' name='Type' options={['xTrad', 'flexS', 'flexM']} onChange={runScenario} />
+                <DropdownConst id='c-opt' name='Optimal' options={['true', 'false']} onChange={runScenario} disabled={calcDisabled('opt')} />
               </Flex>
-              <Flex f='FSV' cn='rel' l='-40px'>
-                <DropdownConst id='c-J' name='J' options={paramRanges.J} onChange={generateScenario} disabled={calcDisabled('strat')} />
-                <DropdownConst id='c-Lm' name='Lm' options={paramRanges.Lm} onChange={generateScenario} disabled={calcDisabled('stratM')} />
-                <DropdownConst id='c-Ld' name='Ld' options={paramRanges.Ld} onChange={generateScenario} disabled={calcDisabled('stratM')} />
+              <Flex f='FSV' cn='rel' l='0px'>
+                <DropdownConst id='c-J' name='J' options={paramRanges.J} onChange={runScenario} disabled={calcDisabled('strat')} />
+                <DropdownConst id='c-Lm' name='Lm' options={paramRanges.Lm} onChange={runScenario} disabled={calcDisabled('stratM')} />
+                <DropdownConst id='c-Ld' name='Ld' options={paramRanges.Ld} onChange={runScenario} disabled={calcDisabled('stratM')} />
               </Flex>
             </Grid>
-
           </Flex>
+
+          <Flex cn='w100' f='FSV'>
+            <Center cn='font-title3 rig'>Generate</Center>
+            <Flex
+              w='90px' f='FCV' mt='10px'
+              cn={`c-l1 font-small us-none bc1 ptr grow hoverGrow`}
+              oc={generateScenario}
+            >
+              <Img src='generateScenario2.svg' w='80%' h='80%' cn='of-cont' />
+              {/* <Center cn='w100'>Generate</Center>
+              <Center cn='w100'>scenario</Center> */}
+            </Flex>
+          </Flex>
+
         </Grid>
 
-        <Center cn='w100 bc-d3' h='1px' m='20px 0 10px 0' />
+        {/* <Center cn='w100 bc-d3' h='1px' m='20px 0 10px 0' /> */}
 
-        <Center cn='w100'>
-          <Center
-            w='230px' h='30px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={generateScenario}
-          >
-            Generate scenario
-          </Center>
-        </Center>
+
 
       </Flex>
 
-      <Center cn='w100 bc-d3' h='1px' m='20px 0' />
+      {/* <Center cn='w100 bc-d3' h='1px' m='20px 0' /> */}
 
-      <Flex f='FSVS rel' p='0 20px'>
-        <Flex f='FS' cn='font-title'>Simulation</Flex>
+      <Flex f='FSVS rel grow w100' p='0' mt='50px'>
+        <Flex f='FS' cn='font-title' ml='20px'>Simulation</Flex>
 
-        <Center cn='w100 bc-d3' h='1px' m='10px 0' />
+        <Center cn='bc-d3' h='1px' m='10px 0' w='calc(100% - 40px)' ml='20px' />
 
-        <Flex f='FS' cn='w100 rel' t='-5px' l='20px'>
+        <Flex f='FS' cn='w100 rel' t='-5px' l='40px'>
           <DropdownConst id='simu-speed' name='Speed' options={['slow', 'medium', 'fast']} w='120px' onChange={e => updatePlayspeed(e)} />
 
           <Center
-            w='40px' h='30px' mt='10px' ml='20px'
+            w='40px' h='25px' mt='5px' ml='20px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => setPlaying(prev => !prev)}
           >
@@ -158,7 +183,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
           </Center>
 
           <Center
-            w='20px' h='30px' mt='10px' ml='20px'
+            w='20px' h='25px' mt='5px' ml='20px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => {
               if (currentStep > 0) updateStep(prev => prev - 1)
@@ -169,7 +194,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
           </Center>
 
           <Center
-            w='20px' h='30px' mt='10px' ml='1px'
+            w='20px' h='25px' mt='5px' ml='1px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => {
               if (currentStep < simulation.current.inputs.steps - 1) updateStep(prev => prev + 1)
@@ -180,10 +205,10 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
           </Center>
 
           <Center
-            w='40px' h='30px' mt='10px' ml='20px'
+            w='40px' h='25px' mt='5px' ml='20px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => {
-              updateStep(0)
+              updateStep(() => 0)
               setPlaying(false)
             }}
           >
@@ -192,8 +217,8 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
 
         </Flex>
 
-        <Center w={`${V_CANVAS_WIDTH}px`} h={`${V_CANVAS_HEIGHT}px`} bc='#fff' mt='10px' cn={`rel ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
-          <canvas id='visu-canvas' width={V_CANVAS_WIDTH} height={V_CANVAS_HEIGHT} style={{ 'width': `${V_CANVAS_WIDTH}px`, 'height': `${V_CANVAS_HEIGHT}px` }}></canvas>
+        <Center id='canvas-container' bc='#fff' mt='10px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
+          <canvas id='visu-canvas' width={canvasSize.w} height={canvasSize.h} style={{ 'width': `${canvasSize.w}px`, 'height': `${canvasSize.h}px` }}></canvas>
         </Center>
 
       </Flex>

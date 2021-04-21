@@ -17,11 +17,11 @@ export function DropdownVar({ id, name, sel, options, ...cssProps }) {
 
 export function DropdownConst({ id, name, options, disabled = false, w, ...cssProps }) {
   return (
-    <Flex f='FS' w={w ? w : '100px'} h='30px' cn='rel' mt='10px'>
-      <Flex f='FE' w='30px' cn='rig h100 font-small' mr='10px'>
+    <Flex f='FS' w={w ? w : '100px'} h='25px' cn='rel' mt='5px'>
+      <Flex f='FE' w='30px' cn='rig h100 font-small' mr='5px'>
         {name}
       </Flex>
-      <Select id={id} w='100px' h='30px' bc='#bbb' cn={`rel ${disabled ? '' : 'ptr'} grow font-dropdown`} name={name} disabled={disabled} {...cssProps}>
+      <Select id={id} w='100px' h='25px' bc='#bbb' cn={`rel ${disabled ? '' : 'ptr'} grow font-dropdown`} name={name} disabled={disabled} {...cssProps}>
         {options.map(item => <Option key={item} cn='w100 bc-l1 c-d1' mt='1px'>{item}</Option>)}
       </Select>
     </Flex>
