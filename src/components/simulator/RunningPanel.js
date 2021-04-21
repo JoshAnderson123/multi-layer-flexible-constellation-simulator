@@ -28,7 +28,7 @@ export default function RunningPanel({ inputs, updateResults }) {
       architectures.current = generateArchitectures(tsb.current.arcsFixed, tsb.current.arcsFlex)
       scenarios.current = generateTradespace(tsb.current.scenarios)
 
-      simulation.current = createSimulation(simulationInputs(scenarios.current[0]), architectures.current)
+      simulation.current = createSimulation(simulationInputs(scenarios.current[0]))
 
       const arcsTrad = simulation.current.runTrad(architectures.current)
       arcsParetoFam.current = filterParetoOptimal(arcsTrad)

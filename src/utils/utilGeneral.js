@@ -1,3 +1,4 @@
+import { defaultSim } from "../config";
 import { optimiseFlexM, optimiseFlexS } from "./optimise";
 
 export function commas(x) {
@@ -141,19 +142,8 @@ export function generateTSB(inputs) {
 }
 
 export function simulationInputs(scen) {
-  const simulationInputs = {
-    T: 10,             // Simulation time (Years)
-    μ: 0.77,           // Annual expected rate of return 
-    σ: 0.2,            // Volatility 
-    steps: 480,        // Steps in each scenario (480 in 10 years = 1 step/week (approx))
-    start: 50000,      // Start demand
-    numScenarios: 100,// Number of scenarios
-    r: 0.55,           // Discount rate
-    capMax: 15e6,      // Maximum capacity
-    reconCost: 0.20    // Reconfiguration cost (% of production cost (per reconfiguration))
-  }
 
-  return { ...simulationInputs, r: scen.r, reconCost: scen.rec, σ: scen.σ, numScenarios: scen.S }
+  return { ...defaultSim, r: scen.r, reconCost: scen.rec, σ: scen.σ, numScenarios: scen.S }
 }
 
 export function formatTime(ms) {
@@ -282,8 +272,9 @@ export function matchConstantsTrad(x, varParams, constParams) {
 }
 
 
-export function parseConst(id) {
+export function parseConst(id, str=false) {
   if (!document.querySelector(id)) return null
+  if (str) return document.querySelector(id).value
   return round(parseFloat(document.querySelector(id).value), 6)
 }
 
@@ -347,6 +338,15 @@ export function findxFlex(p, results, type) {
   return optimiseFlexM(filteredResults)
 }
 
+export function findFlex(p, strat, results, type) {
+  if (type === 'single') return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === 1)
+  return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === strat.Lm && x.Ld === strat.Ld)
+}
+
+export function findFamilyFromFlex(flex, tradespace) {
+  return tradespace.find(x => x.D === flex.D && x.P === flex.P && x.f === flex.f && x.I === flex.I)
+}
+
 // Returns relevant scenario data for the results (removes S - number of scenarios)
 export function scenarioData(s) {
   return { r: s.r, rec: s.rec, σ: s.σ }
@@ -359,7 +359,6 @@ export function openResultsFile(evt, updateResults) {
   let reader = new FileReader();
 
   reader.onload = function (e) {
-    console.log(JSON.parse(e.target.result))
     try {
       let json = JSON.parse(e.target.result)
       updateResults(json.results, json.inputs)

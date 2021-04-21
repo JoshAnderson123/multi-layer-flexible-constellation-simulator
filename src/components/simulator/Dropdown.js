@@ -15,9 +15,9 @@ export function DropdownVar({ id, name, sel, options, ...cssProps }) {
   )
 }
 
-export function DropdownConst({ id, name, options, disabled = false, ...cssProps }) {
+export function DropdownConst({ id, name, options, disabled = false, w, ...cssProps }) {
   return (
-    <Flex f='FS' w='100px' h='30px' cn='rel' mt='10px'>
+    <Flex f='FS' w={w ? w : '100px'} h='30px' cn='rel' mt='10px'>
       <Flex f='FE' w='30px' cn='rig h100 font-small' mr='10px'>
         {name}
       </Flex>

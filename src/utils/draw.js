@@ -1,4 +1,4 @@
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT } from '../config'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, V_CANVAS_WIDTH, V_CANVAS_HEIGHT, layerColors } from '../config'
 import { calcBoundaries } from './architectures';
 import { findxFlex, findxTrad } from './utilGeneral';
 
@@ -70,7 +70,7 @@ function drawFamilyLines(ctx, tradespace, inputs, boundaries, config) {
     // ctx.strokeStyle = `rgba(${randRGB()},128,${randRGB()},${config.opacity})`;
     ctx.strokeStyle = `rgba(128, 128, 128,0.5)`
     const arcStart = fam.cfgs[0]
-    const arcEnd = fam.cfgs[fam.cfgs.length-1]
+    const arcEnd = fam.cfgs[fam.cfgs.length - 1]
     if (arcStart.cap < inputs.start || arcEnd.cap < inputs.capMax) ctx.strokeStyle = `rgba(255, 128, 128,0.5)`
 
     //// Segmentng Colouring
@@ -182,11 +182,11 @@ function drawXTrad(ctx, xTrad, boundaries, config) {
 function drawXFlex(ctx, tradespace, xFlex, boundaries, config) {
 
   const cfgs = tradespace.find(f =>
-     f.D === xFlex.D &&
-     f.P === xFlex.P &&
-     f.f === xFlex.f &&
-     f.I === xFlex.I
-     ).cfgs
+    f.D === xFlex.D &&
+    f.P === xFlex.P &&
+    f.f === xFlex.f &&
+    f.I === xFlex.I
+  ).cfgs
 
   ctx.strokeStyle = config.color;
   ctx.lineWidth = config.lineWidth;
@@ -231,7 +231,7 @@ function log(x) {
   return Math.log10(x)
 }
 
-
+// eslint-disable-next-line
 function randRGB() {
   return Math.floor(Math.random() * 256)
 }
@@ -314,5 +314,102 @@ function drawTickD(ctx, inputs, SCALE_FACTOR) {
     ctx.lineTo(x - lineLen, y);
     ctx.stroke();
     ctx.fillText(`${point / 1e6}M`, x - 60, y + 6);
+  }
+}
+
+
+
+
+
+///////// Draw Visualisation Graph /////////
+
+export function drawVisualisationGraph(results, simulation, playing, currentStep) {
+  const c = document.getElementById("visu-canvas")
+  const ctx = c.getContext("2d")
+
+  ctx.clearRect(0, 0, c.width, c.height)
+  ctx.fillStyle = `rgba(255,255,255,1)`
+  ctx.fillRect(0, 0, c.width, c.height)
+
+  const SCALE_FACTOR = 1
+  const MAX_DEMAND = Math.max(...results.demand)
+  const MAX_CAPACITY = Math.max(...results.capacity)
+  const MAX_DC = Math.max(MAX_DEMAND, MAX_CAPACITY, simulation.inputs.capMax * 1.1)
+  const STEP = V_CANVAS_WIDTH / simulation.inputs.steps
+
+  drawDemandLine()
+  drawCapacityLine()
+  drawCapMax()
+  drawEvolutions()
+  drawStep()
+
+  function calcY(v) {
+    return V_CANVAS_HEIGHT - ((v / MAX_DC) * V_CANVAS_HEIGHT * SCALE_FACTOR)
+  }
+
+  function drawDemandLine() {
+    ctx.strokeStyle = 'rgba(160, 0, 0, 0.5)'
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, V_CANVAS_HEIGHT);
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      ctx.lineTo(STEP * d, calcY(results.demand[d]))
+    }
+    ctx.stroke();
+  }
+
+  function drawCapacityLine() {
+    ctx.strokeStyle = 'rgba(100, 100, 100, 1)'
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, V_CANVAS_HEIGHT);
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      ctx.lineTo(STEP * d, calcY(results.capacity[d]));
+    }
+    ctx.stroke();
+  }
+
+  function drawCapMax() {
+    ctx.strokeStyle = 'rgba(0, 0, 255, 1)'
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, calcY(simulation.inputs.capMax));
+    ctx.lineTo(V_CANVAS_WIDTH, calcY(simulation.inputs.capMax));
+    ctx.stroke();
+  }
+
+  function drawEvolutions() {
+
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#000000'
+    ctx.fillStyle = `#${layerColors[0]}`
+    ctx.beginPath();
+    ctx.arc(0, calcY(0), 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      if (results.evolutions[d]?.evolution) {
+
+        ctx.fillStyle = `#${layerColors[results.evolutions[d].layer]}`
+        // if (results.evolutions[d].evolution === 'NL') ctx.fillStyle = '#ff38af'
+        // else ctx.fillStyle = '#00cd8a'
+
+        ctx.beginPath();
+        ctx.arc(STEP * d, calcY(results.capacity[d]), 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (results.evolutions[d].evolution === 'NL') ctx.stroke();
+      }
+    }
+  }
+
+  function drawStep() {
+    ctx.strokeStyle = 'rgba(100, 100, 100, 1)'
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(currentStep * STEP, 0);
+    ctx.lineTo(currentStep * STEP, V_CANVAS_HEIGHT);
+    ctx.stroke();
   }
 }

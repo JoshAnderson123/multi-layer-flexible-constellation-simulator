@@ -5,7 +5,6 @@ export default function ViewBtn({renderCtx, setRenderCtx, id, title}) {
 
   const displayColor = renderParam => renderParam ? "on" : ""
   const changeRenderCtx = renderParam => {
-    console.log('eh?')
     setRenderCtx(prevRenderCtx => Object.assign({}, prevRenderCtx, {[renderParam]: !prevRenderCtx[renderParam]}))
   }
 

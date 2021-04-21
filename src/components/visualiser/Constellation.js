@@ -18,20 +18,26 @@ export default function Constellation({ design }) {
   const { z, r } = calculateFootprint(MEA, alt, EARTH_RADIUS_SCALED) // Cone angle = minimum elevation angle
   const lonRange = halfRotation === true ? 190 : 360
 
+  const orbitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: render.orbitOpacity, depthWrite: false })
+  orbitMat.color.setHex(`0x${color}`).convertSRGBToLinear()
+
   const constCtx = { planes, satellitesPerPlane, MEA, altitude: alt, inclination, color, halfRotation, spacingType }
   const orbitCtx = {
-    // orbitGeo: generateOrbitGeometry(h),
-    orbitGeo: generateOrbitsGeometry2(h, degToRad(inclination), planes, lonRange),
-    orbitMat: new THREE.LineBasicMaterial({ color, transparent: true, opacity: render.orbitOpacity, depthWrite: false })
+    orbitGeo: generateOrbitsGeometry2(h, degToRad(inclination), planes, lonRange), orbitMat
   }
+
+  const objMat = new THREE.MeshBasicMaterial()
+  objMat.color.setHex(`0x${color}`).convertSRGBToLinear()
+  const footMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.4, depthWrite: false })
+  footMat.color.setHex(`0x${color}`).convertSRGBToLinear()
+  const coneMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.15, depthWrite: false })
+  coneMat.color.setHex(`0x${color}`).convertSRGBToLinear()
+
+
   const satCtx = {
-    objGeo: generateSatellitesGeometry(satellitesPerPlane, h),
-    objMat: new THREE.MeshBasicMaterial({ color }),
-    // footGeo: generateFootprintGeometry(z, r),
-    footGeo: generateFootprintsGeometry(z, r, satellitesPerPlane),
-    footMat: new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.4, depthWrite: false }),
-    coneGeo: generateConesGeometry(z, r, h - z, satellitesPerPlane),
-    coneMat: new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.15, depthWrite: false }),
+    objGeo: generateSatellitesGeometry(satellitesPerPlane, h), objMat,
+    footGeo: generateFootprintsGeometry(z, r, satellitesPerPlane), footMat,
+    coneGeo: generateConesGeometry(z, r, h - z, satellitesPerPlane), coneMat,
     velocity: 1 / (2 * Math.PI * Math.sqrt(((h * SCALE_FACTOR) ** 3) / GRAVITY_CONSTANT))
   }
 

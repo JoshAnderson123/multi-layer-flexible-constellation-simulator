@@ -1,4 +1,4 @@
-//// SIMULATOR ////
+//// ARCTS GRAPH ////
 
 export const CANVAS_WIDTH = 1400;
 export const CANVAS_HEIGHT = 800;
@@ -8,6 +8,11 @@ export const CP_BOTTOM = 100;
 export const CP_LEFT = 200;
 export const GRAPH_WIDTH = CANVAS_WIDTH - (CP_LEFT + CP_RIGHT);
 export const GRAPH_HEIGHT = CANVAS_HEIGHT - (CP_TOP + CP_BOTTOM);
+
+//// VISUALISER GRAPH ////
+export const V_CANVAS_WIDTH = 560;
+export const V_CANVAS_HEIGHT = 300;
+
 
 export const defaultInputs = {
   scenario: {
@@ -79,7 +84,19 @@ export const inputOptions = [
 export const cBad = '#ff8888'
 export const cGood = '#88ff88'
 
+export const layerColors = ['00ffff', '002aff', 'c300ff', 'ff003c', 'fc7f03']
 
+export const defaultSim = {
+  T: 10,             // Simulation time (Years)
+  μ: 0.77,           // Annual expected rate of return 
+  σ: 0.2,            // Volatility 
+  steps: 480,        // Steps in each scenario (480 in 10 years = 1 step/week (approx))
+  start: 50000,      // Start demand
+  numScenarios: 100, // Number of scenarios
+  r: 0.55,           // Discount rate
+  capMax: 15e6,      // Maximum capacity
+  reconCost: 0.20    // Reconfiguration cost (% of production cost (per reconfiguration))
+}
 
 
 

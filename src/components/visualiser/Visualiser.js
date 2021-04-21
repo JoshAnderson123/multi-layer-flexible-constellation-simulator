@@ -8,27 +8,32 @@ import Earth from './Earth'
 import Stars from './Stars'
 import Lights from './Lights'
 import Constellation from './Constellation'
-import {generatePolarConstellation2} from '../../utils/ConstellationUtil'
-
+import { generatePolarConstellation2 } from '../../utils/ConstellationUtil'
+import { layerColors } from '../../config'
 import { RenderContext } from './VisualiserPanel'
 
-export default function Visualiser({ renderCtx, results }) {
+export default function Visualiser({ renderCtx, constellation }) {
 
   let [SPP, setSPP] = useState(1)
 
+  function configGL(gl) {
+    gl.toneMapping = THREE.NoToneMapping
+    gl.gammaInput = true
+    gl.gammaOutput = true
+    gl.gammaFactor = 2.2
+  }
+  
   return (
-    <Canvas onCreated={({ gl }) => { gl.toneMapping = THREE.NoToneMapping }} id="canvas" camera={{ position: [0, 0, 20], fov: 50 }} onClick={e => setSPP(SPP + 1)}>
+    <Canvas onCreated={({ gl }) => configGL(gl)} id="canvas" camera={{ position: [0, 0, 20], fov: 50 }} onClick={e => setSPP(SPP + 1)}>
       <Suspense fallback={null}>
         <RenderContext.Provider value={renderCtx} >
           <CameraControls />
           <Earth />
-          <Stars renderCtx={renderCtx} /> 
+          <Stars renderCtx={renderCtx} />
           <Lights renderCtx={renderCtx} />
-          {/* <Constellation2 design={generatePolarConstellation2(35, 600, '#ff2222')} /> */}
-          <Constellation design={generatePolarConstellation2(results.xTrad[0].e, results.xTrad[0].a, '#00ffff')} />
-          {/* {constellation.data.map((subConstellation, idx) => <Constellation design={subConstellation} key={idx} />)} */}
+          {constellation ? constellation.map((c, i) => <Constellation key={i} design={generatePolarConstellation2(c.e, c.a, layerColors[i])} />) : null}
         </RenderContext.Provider >
       </Suspense>
     </Canvas>
   );
-} 
+}

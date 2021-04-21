@@ -190,9 +190,5 @@ export function generatePolarConstellation2(MEA, altitude, color) {
   const S = Math.ceil((2 * Math.PI) / as) // Satellites Per Plane
   const P = Math.ceil((2 * Math.PI) / ap) // Number of Planes
 
-  console.log(`SPP: ${S}`)
-  console.log(`Planes: ${P}`)
-  console.log(`Total: ${P * S}`)
-
   return { planes: P, satellitesPerPlane: S, MEA, altitude, inclination: 85, color, halfRotation: true, spacingType: 'cross' }
 }

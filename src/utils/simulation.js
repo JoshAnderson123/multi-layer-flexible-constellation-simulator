@@ -25,7 +25,9 @@ export function createSimulation(inputs, arcs) {
   simulation.deterministicScenario = detScenario
   simulation.stochasticScenarios = scenarios
   simulation.runTrad = tradespace => runTrad(tradespace)
+  simulation.runTradVisual = xTrad => runTradVisual(xTrad)
   simulation.runFlex = (tradespace, flexStratInputs) => runFlex(tradespace, flexStratInputs)
+  simulation.runFlexVisual = (family, flexStratInputs) => runFlexVisual(family, flexStratInputs)
   simulation.maxMinDemand = () => maxMinDemand(scenarios)
   simulation.expectedDemand = () => detFinal
   simulation.L = L
@@ -48,11 +50,34 @@ export function createSimulation(inputs, arcs) {
       for (let config of family.cfgs) {   // For each configuration in the fam
         let LCCarr = [config.costs.IDC + config.costs.PC + config.costs.LC] // Initial costs
         for (let t = 1; t < steps + 1; t++) LCCarr.push(config.costs.OC * dt) // Each step
-        config.LCC = discount(LCCarr, discountArr) // NPV
+        config.LCC = calcLCC(LCCarr, discountArr) // NPV
       }
       family.cfgs.sort((a, b) => a.LCC - b.LCC)
     }
     return tsf
+  }
+
+
+
+  function runTradVisual(xTrad) {
+
+    const dt = T / steps // # Steps / year
+
+    const cap = xTrad.cap
+
+    const results = {
+      demand: scenarios[Math.floor(Math.random() * scenarios.length)],
+      capacity: new Array(steps).fill(cap),
+      cost: [],
+      evolutions: new Array(steps).fill({}),
+      layers: new Array(steps).fill([{ e: xTrad.e, a: xTrad.a }])
+    }
+
+    let LCCarr = [xTrad.costs.IDC + xTrad.costs.PC + xTrad.costs.LC] // Initial costs
+    for (let t = 1; t < steps + 1; t++) LCCarr.push(xTrad.costs.OC * dt) // Each step
+    results.cost = discountLCCArr(LCCarr, discountArr) // NPV
+
+    return results
   }
 
 
@@ -69,71 +94,140 @@ export function createSimulation(inputs, arcs) {
     const tsFlexMulti = [] // Initialsie tradespace of families using the multi-layered flexible strategy
     const dt = T / steps // Calculate Time step (years)
 
-      for (let family of tradespace) { // For each family in the tradespace
+    for (let family of tradespace) { // For each family in the tradespace
 
-        if (maxCapacityOf(family) < capMax) continue // Discard a family if it never reaches capMax
+      if (maxCapacityOf(family) < capMax) continue // Discard a family if it never reaches capMax
 
-        const OC = {} // Initialise Ongoing & Mantenance cost cache
-        function combinedOC(layers) { // Setup optimised combined OC function for this family
-          const n = calcTotalN(layers, family)
-          if (n in OC) { return OC[n] }
-          if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
-          L[n] = n ** b
-          OC[n] = family.recCosts['LOOS'] * L[n] * dt
-          return OC[n]
-        }
-
-        const maxExpReconSat = calcMaxExpReconsSat(J, Lm, Ld, family) // Calculate the expected number of reconfigurations for a single satellite
-
-        let ELCC = 0 // Initialise expected LCC
-        let avgR = 0 // Initialise average number of reconfigurations
-        let avgN = 0
-
-        for (let demand of scenarios) { // Run through every demand scenario
-
-          let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
-          let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
-          let curR = 0 // Initialise the current number of reconfigurations
-
-          for (let t = 1; t < demand.length; t++) { // Run through the scenario
-
-            let LCCstep = 0 // Initialise LCC for this step
-            const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
-
-            if (totalCap < capMax && demand[t] > totalCap) { // If constellation should evolve
-
-              // If a new layer should be added (NL evolution)
-              if (numberOf(layers) < Lm && (t / steps) > Ld) {
-                const nl = chooseEvolutionNewLayer(family, totalCap, J) // Calculate the best architecture to add
-                layers.push(nl) // Add new layer to the constellation
-                LCCstep += evolutionNLCosts(family, layers) // Add NL evolution cost to LCC
-                avgN++
-              }
-              // If an existing layer should be reconfigured (Recon evolution)
-              else {
-                const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J) // Choose ID of best architecture to reconfigure to
-                LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxExpReconSat - curR) // Add recon evolution cost to LCC
-                layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
-                avgR++
-                curR++
-              }
-            }
-
-            LCCstep += combinedOC(layers)
-            LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
-          }
-          
-          ELCC += discount(LCCarr, discountArr) // Discount the LCCs at every step, then sum them together, and add to the ELCC counter
-        }
-
-        ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
-        avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
-        avgN = round(avgN / scenarios.length, 4)
-        tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, Ld, J }) // Add this family and its ELCC to the final list
+      const OC = {} // Initialise Ongoing & Mantenance cost cache
+      function combinedOC(layers) { // Setup optimised combined OC function for this family
+        const n = calcTotalN(layers, family)
+        if (n in OC) { return OC[n] }
+        if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
+        L[n] = n ** b
+        OC[n] = family.recCosts['LOOS'] * L[n] * dt
+        return OC[n]
       }
 
-      const xFlex = tsFlexMulti.reduce((lowest, fam) => fam.ELCC < lowest.ELCC ? fam : lowest, { ELCC: Infinity })
-      return formatxFlex(xFlex)
+      const maxExpReconSat = calcMaxExpReconsSat(J, Lm, Ld, family) // Calculate the expected number of reconfigurations for a single satellite
+
+      let ELCC = 0 // Initialise expected LCC
+      let avgR = 0 // Initialise average number of reconfigurations
+      let avgN = 0
+
+      for (let demand of scenarios) { // Run through every demand scenario
+
+        let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+        let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
+        let curR = 0 // Initialise the current number of reconfigurations
+
+        for (let t = 1; t < demand.length; t++) { // Run through the scenario
+
+          let LCCstep = 0 // Initialise LCC for this step
+          const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+
+          if (totalCap < capMax && demand[t] > totalCap) { // If constellation should evolve
+
+            // If a new layer should be added (NL evolution)
+            if (numberOf(layers) < Lm && (t / steps) > Ld) {
+              const nl = chooseEvolutionNewLayer(family, totalCap, J) // Calculate the best architecture to add
+              layers.push(nl) // Add new layer to the constellation
+              LCCstep += evolutionNLCosts(family, layers) // Add NL evolution cost to LCC
+              avgN++
+            }
+            // If an existing layer should be reconfigured (Recon evolution)
+            else {
+              const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J) // Choose ID of best architecture to reconfigure to
+              LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxExpReconSat - curR) // Add recon evolution cost to LCC
+              layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
+              avgR++
+              curR++
+            }
+          }
+
+          LCCstep += combinedOC(layers)
+          LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
+        }
+
+        ELCC += calcLCC(LCCarr, discountArr) // Discount the LCCs at every step, then sum them together, and add to the ELCC counter
+      }
+
+      ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
+      avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
+      avgN = round(avgN / scenarios.length, 4)
+      tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, Ld, J }) // Add this family and its ELCC to the final list
+    }
+
+    const xFlex = tsFlexMulti.reduce((lowest, fam) => fam.ELCC < lowest.ELCC ? fam : lowest, { ELCC: Infinity })
+    return formatxFlex(xFlex)
+  }
+
+
+
+  function runFlexVisual(family, flexStratInputs) {
+
+    const { J, Lm, Ld } = flexStratInputs // Extract flexible strategy inputs
+    const dt = T / steps // Calculate Time step (years)
+    const demand = scenarios[Math.floor(Math.random() * scenarios.length)]
+
+    const results = {
+      demand: demand,
+      capacity: [],
+      cost: [],
+      evolutions: [],
+      layers: [],
+    }
+
+    const OC = {} // Initialise Ongoing & Mantenance cost cache
+    function combinedOC(layers) { // Setup optimised combined OC function for this family
+      const n = calcTotalN(layers, family)
+      if (n in OC) { return OC[n] }
+      if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
+      L[n] = n ** b
+      OC[n] = family.recCosts['LOOS'] * L[n] * dt
+      return OC[n]
+    }
+
+    const maxExpReconSat = calcMaxExpReconsSat(J, Lm, Ld, family) // Calculate the expected number of reconfigurations for a single satellite
+
+    let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+    let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
+    let curR = 0 // Initialise the current number of reconfigurations
+
+    for (let t = 1; t < demand.length; t++) { // Run through the scenario
+
+      let LCCstep = 0 // Initialise LCC for this step
+      const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+      results.capacity.push(totalCap)
+      results.layers.push(layers.map(layer => ({ e: family.cfgs[layer].e, a: family.cfgs[layer].a })))
+
+      if (totalCap < capMax && demand[t] > totalCap) { // If constellation should evolve
+
+        // If a new layer should be added (NL evolution)
+        if (numberOf(layers) < Lm && (t / steps) > Ld) {
+          const nl = chooseEvolutionNewLayer(family, totalCap, J) // Calculate the best architecture to add
+          layers.push(nl) // Add new layer to the constellation
+          LCCstep += evolutionNLCosts(family, layers) // Add NL evolution cost to LCC
+          results.evolutions.push({ evolution: 'NL', layer: layers.length - 1 })
+        }
+        // If an existing layer should be reconfigured (Recon evolution)
+        else {
+          const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J) // Choose ID of best architecture to reconfigure to
+          LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxExpReconSat - curR) // Add recon evolution cost to LCC
+          layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
+          results.evolutions.push({ evolution: 'recon', layer: bestRecon.a })
+          curR++
+        }
+      } else {
+        results.evolutions.push({})
+      }
+
+      LCCstep += combinedOC(layers)
+      LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
+    }
+
+    results.cost = discountLCCArr(LCCarr, discountArr)
+
+    return results
   }
 
 
@@ -302,8 +396,13 @@ export function createSimulation(inputs, arcs) {
    * @param {number} discountArr Discount Array
    * @return {number} Total discounted LCC
    */
-  function discount(LCCarr, discountArr) {
+  function calcLCC(LCCarr, discountArr) {
     return LCCarr.reduce((LCC, _, step) => LCC + (LCCarr[step] * discountArr[step]), 0)
+  }
+
+
+  function discountLCCArr(LCCarr, discountArr) {
+    return LCCarr.map((_, step) => (LCCarr[step] * discountArr[step]))
   }
 
 
