@@ -3,7 +3,7 @@ import { cBad, cGood } from '../../config'
 import { copyHeatmapToClipboard, formatHMItem } from '../../utils/utilGeneral'
 import { Center, Flex } from '../blocks/blockAPI'
 
-export default function HeatmapLegend({ HMResults, viewValues, setViewValues }) {
+export default function HeatmapLegend({ HMResults, viewValues, setViewValues, viewHover, setViewHover }) {
 
   const bounds = { min: Math.min(...HMResults.data), max: Math.max(...HMResults.data) }
 
@@ -11,7 +11,7 @@ export default function HeatmapLegend({ HMResults, viewValues, setViewValues }) 
     <>{
       HMResults.data?.length > 0 ?
 
-        <Flex f='FSV' w='250px' h='430px' bc='#fff' cn='bsh3 rel' ml='40px'>
+        <Flex f='FSV' w='250px' h='470px' bc='#fff' cn='bsh3 rel' ml='40px'>
 
           <Center cn='w100 font-grid-small c-d1' h='40px' mt='20px' >{HMResults.config.output}</Center>
 
@@ -31,6 +31,7 @@ export default function HeatmapLegend({ HMResults, viewValues, setViewValues }) 
           </Center>
 
           <Center mt='50px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => setViewValues(p => !p)} o={viewValues ? '1' : '0.5'} >{`View Values: ${viewValues ? 'on' : 'off'}`}</Center>
+          <Center mt='10px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => setViewHover(p => !p)} o={viewHover ? '1' : '0.5'} >{`View Hover: ${viewHover ? 'on' : 'off'}`}</Center>
           <Center mt='10px' w='140px' h='30px' bc='#bbb' cn='c-l1 font-small ptr hoverGrow' oc={() => copyHeatmapToClipboard(HMResults)} >Copy to clipboard</Center>
 
         </Flex>

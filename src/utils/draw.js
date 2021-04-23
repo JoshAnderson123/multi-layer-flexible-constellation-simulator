@@ -336,7 +336,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM
 
   const demandStroke = 'rgba(180, 0, 0, 0.8)'
-  const capacityStroke = 'rgba(100, 100, 100, 1)'
+  const capacityStroke = 'rgba(180, 0, 180, 1)' // 100,100,100
   const capMaxStroke = 'rgba(0, 0, 255, 1)'
 
   const evolutionRadius = 5
@@ -447,7 +447,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   }
 
   function drawStep() {
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)'
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
     ctx.lineWidth = 1;
     drawLine(calcX(currentStep * STEP), VP_TOP, calcX(currentStep * STEP), VP_TOP + V_GRAPH_HEIGHT)
   }

@@ -13,33 +13,21 @@
 
 import { parseRange } from "./utilGeneral"
 
-
-/**
- * Generates an array of possible values for each input parameter in the design vector
- * @param {object} tsb tradespace upper/lower bounds and interval
- * @return {object} array of possible values for each parameter
- */
-function generateParamArrays(tsb) {
-
-  const t = [] // Array of values for every parameter
-  const i = [] // Information for each paramter
-
-  for (const [name, p] of Object.entries(tsb)) {
-
-    const tarr = [] // Array of values for the current parameter
-    let iarr
-
-    if (![null, undefined].includes(p.lb)) { // If parameter has a lower bound i.e. if it is a range
-      for (let v = p.lb; v <= p.ub; v += p.step) tarr.push(Math.round(v * 1e8) / 1e8)
-      iarr = { name, units: p.units }
-    } else { // If parameter is a discrete set
-      tarr.push(...p)
-      iarr = { name }
-    }
-    t.push(tarr)
-    i.push(iarr)
+export function calcInputParamRanges(inputs) {
+  return {
+    r: addParamArray(inputs.scenario.r),
+    rec: addParamArray(inputs.scenario.rec),
+    σ: addParamArray(inputs.scenario.σ),
+    J: addParamArray(inputs.strategy.J),
+    Lm: [...addParamArray(inputs.strategy.Lm), 1],
+    Ld: [...addParamArray(inputs.strategy.Ld), 1],
+    D: addParamArray(inputs.architecture.D),
+    P: addParamArray(inputs.architecture.P),
+    f: addParamArray(inputs.architecture.f),
+    I: addParamArray(inputs.architecture.I),
+    a: addParamArray(inputs.architecture.a),
+    e: addParamArray(inputs.architecture.e),
   }
-  return { t, i }
 }
 
 export function calcResultParamRanges(inputs) {
@@ -71,7 +59,7 @@ export function addParamArray(paramRange) {
   }
 }
 
-export function generateParamArrays2(tsb) {
+export function generateParamArrays(tsb) {
 
   const t = [] // Array of values for every parameter
   const i = [] // Information for each paramter
@@ -109,20 +97,6 @@ function formatVector(i, a) {
 
   return i.reduce((arch, param, idx) => ({
     ...arch,
-    [param.name]: a[idx]
-  }), {})
-}
-
-/**
- * Formats an individual architecture as an object
- * @param {array} i list of parameter names / information
- * @param {array} a list of parameter values for a given architecture
- * @return {object} formatted architecture object
- */
-function formatVector2(i, a) {
-
-  return i.reduce((arch, param, idx) => ({
-    ...arch,
     [param]: a[idx]
   }), {})
 }
@@ -135,11 +109,11 @@ function formatVector2(i, a) {
  */
 export function generateTradespace(b) {
 
-  const { t, i } = generateParamArrays2(b)
+  const { t, i } = generateParamArrays(b)
   const tradespace = []
 
   function generateSubTS(t, i, a) {
-    if (a.length === t.length) return tradespace.push(formatVector2(i, a)) // Base case
+    if (a.length === t.length) return tradespace.push(formatVector(i, a)) // Base case
     for (let v of t[a.length]) generateSubTS(t, i, [...a, v]) // Recursive step
   }
 

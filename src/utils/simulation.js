@@ -12,7 +12,8 @@ import { b } from './models/costModel'
  */
 export function createSimulation(inputs, arcs) {
 
-  const { T, μ, σ, steps, start, numScenarios, r, capMax } = inputs
+  const { T, μ, steps, start, numScenarios, r, capMax } = inputs
+  let σ = scaleTheta(inputs.σ)
   const simulation = {}
   const [detScenario, detFinal] = deterministicScenario(T, μ, start, steps)
   const scenarios = stochasticScenarios(T, μ, σ, start, steps, numScenarios, detFinal)
@@ -131,7 +132,7 @@ export function createSimulation(inputs, arcs) {
 
             // If a new layer should be added (NL evolution)
             if (numberOf(layers) < Lm && (t / steps) > Ld) {
-              const nl = chooseEvolutionNewLayer(family, totalCap, J) // Calculate the best architecture to add
+              const nl = chooseEvolutionNewLayer(family, layers, totalCap, J) // Calculate the best architecture to add
               layers.push(nl) // Add new layer to the constellation
               LCCstep += evolutionNLCosts(family, layers) // Add NL evolution cost to LCC
               avgN++
@@ -177,7 +178,7 @@ export function createSimulation(inputs, arcs) {
       evolutions: [],
       layers: [],
       family,
-      strat: {J, Lm, Ld}
+      strat: { J, Lm, Ld }
     }
 
     const OC = {} // Initialise Ongoing & Mantenance cost cache
@@ -207,7 +208,7 @@ export function createSimulation(inputs, arcs) {
 
         // If a new layer should be added (NL evolution)
         if (numberOf(layers) < Lm && (t / steps) > Ld) {
-          const nl = chooseEvolutionNewLayer(family, totalCap, J) // Calculate the best architecture to add
+          const nl = chooseEvolutionNewLayer(family, layers, totalCap, J) // Calculate the best architecture to add
           layers.push(nl) // Add new layer to the constellation
           LCCstep += evolutionNLCosts(family, layers) // Add NL evolution cost to LCC
           results.evolutions.push({ evolution: 'NL', layer: layers.length - 1 })
@@ -232,6 +233,11 @@ export function createSimulation(inputs, arcs) {
 
     return results
   }
+
+
+  // function NLTooBig(family, totalCap, J) {
+  //   return family.cfgs[0].cap > totalCap * (J - 1)
+  // }
 
 
   function maxCapacityOf(family) {
@@ -284,6 +290,13 @@ export function createSimulation(inputs, arcs) {
     return maxExpReconSat
   }
 
+
+  function calcRequiredCap(totalCap, J) {
+    if (totalCap * J > capMax) return capMax - totalCap
+    return totalCap * (J - 1)
+  }
+
+
   /**
  * Chooses the next architecture in a family to evolve to 
  * @param {object} family Family of architectures
@@ -293,7 +306,7 @@ export function createSimulation(inputs, arcs) {
  */
   function chooseEvolutionReconMulti(family, arcs, totalCap, J) { // Return a new constellation ID that fits the capacity jump criteria
 
-    const reqCapJump = totalCap * (J - 1) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
+    const reqCapJump = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
     const testCapJump = (b, aID) => family.cfgs[b].cap - family.cfgs[arcs[aID]].cap // The tested jump in capacity from arch a to b
 
     let bestRecon = { a: 0, b: 0, jump: Infinity }
@@ -320,12 +333,12 @@ export function createSimulation(inputs, arcs) {
 * @param {object} inputs Simulation input parameters
 * @return {object} The ID for the next architecture to evolve to
 */
-  function chooseEvolutionNewLayer(family, totalCap, J) { // Return a new constellation ID that fits the capacity jump criteria
+  function chooseEvolutionNewLayer(family, layers, totalCap, J) { // Return a new constellation ID that fits the capacity jump criteria
 
-    const reqCapJump = totalCap * (J - 1) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
+    const reqCapJump = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
 
     let nl = 0
-    while (betterEvolution(family, nl, family.cfgs[nl].cap < reqCapJump)) nl++
+    while (betterEvolution(family, nl, family.cfgs[nl].cap < reqCapJump || layers.includes(nl))) nl++
     return nl
   }
 
@@ -366,6 +379,14 @@ export function createSimulation(inputs, arcs) {
     const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
     const LC = calcLaunchCost(family.m.totalMass, newSats)
 
+    if (family.cfgs[newestLayer(arcs)].a === 1400 && family.cfgs[newestLayer(arcs)].e === 10) {
+      console.log('------------')
+      console.log('1400|10')
+      console.log('PC', PC)
+      console.log('LC', LC)
+      console.log('PC + LC', PC + LC)
+    }
+
     return PC + LC
   }
 
@@ -389,6 +410,15 @@ export function createSimulation(inputs, arcs) {
     // const RC = currArch.costs.RC
     const RC = max(1, recsLeft) * (inputs.reconCost * PC)
 
+    if (family.cfgs[a].a === 875 && family.cfgs[a].e === 10 && family.cfgs[b].a === 1050 && family.cfgs[b].e === 20) {
+      console.log('------------')
+      console.log('875|10 -> 1050|20')
+      console.log('PC', PC)
+      console.log('LC', LC)
+      console.log('RC', RC)
+      console.log('PC + LC + RC', PC + LC + RC)
+    }
+
     return PC + LC + RC
   }
 
@@ -400,12 +430,12 @@ export function createSimulation(inputs, arcs) {
    * @return {number} Total discounted LCC
    */
   function calcLCC(LCCarr, discountArr) {
-    return LCCarr.reduce((LCC, _, step) => LCC + (LCCarr[step] * discountArr[step]), 0)
+    return round(LCCarr.reduce((LCC, _, step) => LCC + (LCCarr[step] * discountArr[step])))
   }
 
 
   function discountLCCArr(LCCarr, discountArr) {
-    return LCCarr.map((_, step) => (LCCarr[step] * discountArr[step]))
+    return LCCarr.map((_, step) => round((LCCarr[step] * discountArr[step])))
   }
 
 
@@ -429,5 +459,14 @@ export function createSimulation(inputs, arcs) {
 
   function pickTestScenario() {
     return scenarios[Math.floor(Math.random() * scenarios.length)]
+  }
+
+  function scaleTheta(σ) {
+    if (σ < 0) return 0.1
+    if (σ < 0.2) return (σ / 2) + 0.1
+    return σ
+    // if (σ < 0.1) return 0
+    // if (σ < 0.2) return 2 * σ - 0.2
+    // return σ
   }
 }

@@ -13,6 +13,8 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
   const [viewSce, setViewSce] = useState(false)
   const [viewStr, setViewStr] = useState(true)
 
+  const canRun = calcCanRun(inputs)
+
   return (
     <Flex f='FSV' w='100%' h='100%' bc='#ddd' cn='rel bsh3'>
       <PanelTopBar setPanel={setPanel} />
@@ -33,7 +35,7 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
         <Flex f='FS' cn='w100 font-grid-small c-d2' mt='30px'>{`Total Unit Simulations: ${calcTotalUnitSimulations(inputs)}`}</Flex>
       </Flex>
       <Center cn='w100 font-title2 c-d1 rig' h='100px'>
-        <Center w='300px' h='50px' cn='bc1 c-l1 font-btn ptr hoverGrow us-none' oc={() => setPanel('running')} >
+        <Center w='300px' h='50px' cn={`bc1 c-l1 font-btn us-none ${canRun ? 'ptr hoverGrow' : ''}`} o={canRun ? '1' : '0.5'} oc={() => canRun ? setPanel('running') : null} >
           {`Run Simulation (${estimateTime(inputs)})`}
         </Center>
       </Center>
@@ -117,7 +119,7 @@ function calcEntries(range) {
 function formatTotals(inputs, type) {
   const res = calcTotals(inputs, type)
   if (type === 'architecture') {
-    if (!res.tot) return '-'
+    if (!res?.tot) return '-'
     return `${commas(res.fams)} families, ${commas(res.cfgs)} configs, ${commas(res.tot)} total`
   }
   if (type === 'scenario') {
@@ -161,7 +163,7 @@ function calcTotals(inputs, type) {
 }
 
 function calcTotalUnitSimulations(inputs) {
-  const arcs = calcTotals(inputs, 'architecture').tot
+  const arcs = calcTotals(inputs, 'architecture')?.tot
   const scen = calcTotals(inputs, 'scenario') / inputs.scenario.S
   const straM = calcTotals(inputs, 'strategy')
   const straS = calcEntries(inputs.strategy.J)
@@ -171,7 +173,7 @@ function calcTotalUnitSimulations(inputs) {
 
 function estimateTime(inputs) {
   // Benchmarked with arcs=18000, scen=100, straM=36, straS=4
-  const arcs = calcTotals(inputs, 'architecture').tot
+  const arcs = calcTotals(inputs, 'architecture')?.tot
   const scen = calcTotals(inputs, 'scenario')
   const straM = calcTotals(inputs, 'strategy')
   const straS = calcEntries(inputs.strategy.J)
@@ -179,4 +181,8 @@ function estimateTime(inputs) {
   const unitTime = 2.0835e-4 //1.389e-4
   const ms = unitTime * (9000 + 0.5 * arcs) * scen * (straS + straM)
   return formatTime(ms)
+}
+
+function calcCanRun(inputs) {
+  return estimateTime(inputs) !== '-'
 }

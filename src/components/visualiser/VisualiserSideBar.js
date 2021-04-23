@@ -186,6 +186,17 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
             w='20px' h='25px' mt='5px' ml='20px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => {
+              updateStep(() => 0)
+              setPlaying(false)
+            }}
+          >
+            <Img src='start.svg' cn='of-cont' w='60%' h='60%' />
+          </Center>
+
+          <Center
+            w='20px' h='25px' mt='5px' ml='5px'
+            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
+            oc={() => {
               if (currentStep > 0) updateStep(prev => prev - 1)
               setPlaying(false)
             }}
@@ -205,19 +216,20 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
           </Center>
 
           <Center
-            w='40px' h='25px' mt='5px' ml='20px'
+            w='20px' h='25px' mt='5px' ml='5px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
             oc={() => {
-              updateStep(() => 0)
+              updateStep(() => simulation.current.inputs.steps - 1)
               setPlaying(false)
             }}
           >
-            <Img src='reset.svg' cn='of-cont' w='60%' h='60%' />
+            <Img src='end.svg' cn='of-cont' w='60%' h='60%' />
           </Center>
+
 
         </Flex>
 
-        <Center id='canvas-container' bc='#fff' mt='10px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
+        <Center id='canvas-container' bc='#fff' mt='5px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
           <canvas id='visu-canvas' width={canvasSize.w} height={canvasSize.h} style={{ 'width': `${canvasSize.w}px`, 'height': `${canvasSize.h}px` }}></canvas>
         </Center>
 

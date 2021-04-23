@@ -58,9 +58,15 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
           <ResultBtn imgSrc='ArcTS.svg' text='Arc TS' func={() => setPanel('arcts')} ml='20px' />
           <ResultBtn imgSrc='3D.svg' text='3D Visualiser' func={() => setPanel('visualise')} ml='20px' />
         </Center>
-        <Center w='40px' h='40px' mt='20px' cn='bc1 c-l1 ptr hoverGrow rel' oc={() => copyResultsToClipboard(inputs, results)} >
-          <Img src='download.svg' w='60%' h='60%' cn='of-cont' />
+        <Center mt='20px'>
+          <Center w='40px' h='40px' cn='bc1 c-l1 ptr hoverGrow rel' oc={() => copyResultsToClipboard(inputs, results)} >
+            <Img src='download.svg' w='60%' h='60%' cn='of-cont' />
+          </Center>
+          <File id='upload-json2' ml='10px' w='40px' h='40px' cn='bc1 c-l1 ptr hoverGrow rel FC' onChange={e => openResultsFile(e, updateResults)}>
+          <Img src='upload.svg' w='60%' h='60%' cn='of-cont' />
+          </File>
         </Center>
+
       </>
     )
   }

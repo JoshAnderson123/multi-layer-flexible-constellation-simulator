@@ -12,7 +12,7 @@ import { generatePolarConstellation2 } from '../../utils/ConstellationUtil'
 import { layerColors } from '../../config'
 import { RenderContext } from './VisualiserPanel'
 
-export default function Visualiser({ renderCtx, constellation }) {
+export default function Visualiser({ renderCtx, constellation, viewLayers }) {
 
   let [SPP, setSPP] = useState(1)
 
@@ -22,7 +22,7 @@ export default function Visualiser({ renderCtx, constellation }) {
     gl.gammaOutput = true
     gl.gammaFactor = 2.2
   }
-  
+
   return (
     <Canvas onCreated={({ gl }) => configGL(gl)} id="canvas" camera={{ position: [0, 0, 20], fov: 50 }} onClick={e => setSPP(SPP + 1)}>
       <Suspense fallback={null}>
@@ -31,7 +31,10 @@ export default function Visualiser({ renderCtx, constellation }) {
           <Earth />
           <Stars renderCtx={renderCtx} />
           <Lights renderCtx={renderCtx} />
-          {constellation ? constellation.map((c, i) => <Constellation key={i} design={generatePolarConstellation2(c.e, c.a, layerColors[i])} />) : null}
+          {constellation ? constellation.map((c, i) => {
+            if (viewLayers[i]) return <Constellation key={i} design={generatePolarConstellation2(c.e, c.a, layerColors[i])} />
+            return null
+          }) : null}
         </RenderContext.Provider >
       </Suspense>
     </Canvas>

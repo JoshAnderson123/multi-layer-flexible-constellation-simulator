@@ -18,7 +18,22 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
   let [playspeed, setPlayspeed] = useState(1)
   let [currentStep, setCurrentStep] = useState(0)
   let [visuResults, setVisuResults] = useState()
+  let [viewLayers, setViewLayers] = useState([true, true, true, true, true])
   let prevConstellation = useRef(0)
+
+  useEffect(() => {
+
+    if (playing) setTimeout(incrementStep, 100)
+
+    if (visuResults && constellationChange()) {
+      setConstellation(visuResults.layers[currentStep])
+    }
+
+  }, [currentStep, playing, visuResults])
+
+  useEffect(() => {
+    setViewLayers([true, true, true, true, true])
+  }, [visuResults])
 
   function updateStep(func) {
     setCurrentStep(prev => {
@@ -28,24 +43,16 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
   }
 
   function incrementStep() {
-    if (currentStep === defaultSim.steps - playspeed) return
+    if (currentStep === defaultSim.steps - playspeed) {
+      setPlaying(false)
+      return
+    }
     updateStep(prev => Math.min(prev + playspeed, defaultSim.steps - 1))
   }
 
   function constellationChange() {
     return JSON.stringify(visuResults.layers[currentStep]) !== JSON.stringify(prevConstellation.current)
   }
-
-  useEffect(() => {
-
-    if (playing) setTimeout(incrementStep(), 30)
-
-    if (visuResults && constellationChange()) {
-      setConstellation(visuResults.layers[currentStep])
-    }
-
-  }, [currentStep, playing, visuResults])
-
 
   return (
     <div className="page-container">
@@ -58,8 +65,8 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
             playspeed={playspeed} setPlayspeed={setPlayspeed}
           />
           <Center cn='h100 grow rel'>
-            <Visualiser renderCtx={renderCtx} constellation={constellation} />
-            {visuResults ? <VisualiserStatsPanelTop visuResults={visuResults} currentStep={currentStep} /> : null}
+            <Visualiser renderCtx={renderCtx} constellation={constellation} viewLayers={viewLayers} />
+            {visuResults ? <VisualiserStatsPanelTop visuResults={visuResults} currentStep={currentStep} viewLayers={viewLayers} setViewLayers={setViewLayers} /> : null}
             {visuResults ? <VisualiserStatsPanelBottom visuResults={visuResults} /> : null}
             <VisualiserOptions renderCtx={renderCtx} setRenderCtx={setRenderCtx} />
           </Center>

@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Grid, Center, Flex } from '../blocks/blockAPI'
 import chroma from 'chroma-js'
 import { formatHMItem } from '../../utils/utilGeneral'
 import { cBad, cGood, formatParam } from '../../config'
+import HeatmapItem from './HeatmapItem'
+import HeatmapTooltip from './HeatmapTooltip'
 
-export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitleLen, viewValues }) {
+export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitleLen, viewValues, viewHover }) {
+
+  const [selectedVal, setSelectedVal] = useState({ id: -1 })
 
   const cols = HMResults.config.varParams.v1.range.length // swaped from rows
   const rows = HMResults.config.varParams.v2.range.length // Swaped from cols
@@ -13,22 +17,15 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
 
   const scale = chroma.scale([cGood, cBad]).domain([bounds.min, bounds.max]);
 
-  function datapoint(i) {
-    return (
-      <Center key={i} bc={scale(HMResults.data[i]).hex()} cn='ov-h'>
-        { viewValues ? formatHMItem(HMResults.config.output, HMResults.data[i]) : null}
-      </Center>
-    )
-  }
-
   return (
-    <>
+    <Center>
       <Flex f='FSV' w={`${gridW}px`} h={`${tickLen + axisTitleLen}px`} b='0' r='0' cn='abs' >
         <Grid
           gtc={`repeat(${cols}, 1fr)`} gg='1px'
           w={`${gridW}px`} h={`${tickLen}px`}
           cn='font-heatmap hm-text-color'
           bc='#ddd'
+
         >
           {[...Array(cols).keys()].map(x =>
             <Center key={x} cn='bc-l1 rig ov-h'>
@@ -64,9 +61,12 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
         gtr={`repeat(${rows}, 1fr)`} gtc={`repeat(${cols}, 1fr)`}
         w={`${gridW}px`} h={`${gridH}px`} t='0' r='0'
         cn='font-heatmap hm-text-color abs'
+        oml={() => setSelectedVal({ id: -1 })}
       >
-        {testArr.map(i => datapoint(i))}
+        {testArr.map(i => <HeatmapItem key={i} i={i} HMResults={HMResults} viewValues={viewValues} viewHover={viewHover} scale={scale} setSelectedVal={setSelectedVal} />)}
       </Grid>
-    </>
+
+      {selectedVal.id >= 0 && viewHover ? <HeatmapTooltip selectedVal={selectedVal} /> : null}
+    </Center>
   )
 }

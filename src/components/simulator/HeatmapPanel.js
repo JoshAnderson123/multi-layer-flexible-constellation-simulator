@@ -14,6 +14,7 @@ export default function HeatmapPanel({ inputs, results, setPanel }) { // w='1150
   const [varParams, setVarParams] = useState({ v1: 'J', v2: 'r' })
   const [HMResults, setHMResults] = useState({ data: [] })
   const [viewValues, setViewValues] = useState(false)
+  const [viewHover, setViewHover] = useState(false)
   const paramRanges = calcResultParamRanges(inputs)
 
   function updateVarParams(vParam) {
@@ -39,8 +40,8 @@ export default function HeatmapPanel({ inputs, results, setPanel }) { // w='1150
         />
 
         <Center cn='grow h100'>
-          <HeatmapGridWrapper inputParams={paramRanges} HMResults={HMResults} viewValues={viewValues} />
-          <HeatmapLegend HMResults={HMResults} viewValues={viewValues} setViewValues={setViewValues} />
+          <HeatmapGridWrapper inputParams={paramRanges} HMResults={HMResults} viewValues={viewValues} viewHover={viewHover} />
+          <HeatmapLegend HMResults={HMResults} viewValues={viewValues} setViewValues={setViewValues} viewHover={viewHover} setViewHover={setViewHover} />
         </Center>
 
       </Flex>

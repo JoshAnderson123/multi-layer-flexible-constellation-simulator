@@ -2,7 +2,7 @@ import React from 'react'
 import { Grid, Center, Flex } from '../blocks/blockAPI'
 import HeatmapGrid from './HeatmapGrid'
 
-export default function HeatmapGridWrapper({ HMResults, viewValues }) {
+export default function HeatmapGridWrapper({ HMResults, viewValues, viewHover }) {
 
   const gridW = 850
   const gridH = 650
@@ -14,7 +14,7 @@ export default function HeatmapGridWrapper({ HMResults, viewValues }) {
   return (
     <Center w={`${totalW}px`} h={`${totalH}px`} cn='rel bsh3' bc='#f2f2f2' >
       {
-        HMResults.data?.length > 0 ? <HeatmapGrid HMResults={HMResults} gridW={gridW} gridH={gridH} tickLen={tickLen} axisTitleLen={axisTitleLen} viewValues={viewValues} /> : null
+        HMResults.data?.length > 0 ? <HeatmapGrid HMResults={HMResults} gridW={gridW} gridH={gridH} tickLen={tickLen} axisTitleLen={axisTitleLen} viewValues={viewValues} viewHover={viewHover} /> : null
       }
     </Center>
   )
