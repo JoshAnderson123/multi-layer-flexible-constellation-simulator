@@ -155,9 +155,8 @@ function calcTotals(inputs, type) {
     const s = inputs.strategy
     const eJ = calcEntries(s.J)
     const eLm = calcEntries(s.Lm)
-    const eLd = calcEntries(s.Ld)
-    if (isNaN(eJ) || isNaN(eLm) || isNaN(eLd)) return null
-    return eJ * eLm * eLd
+    if (isNaN(eJ) || isNaN(eLm)) return null
+    return eJ * eLm
   }
   return null
 }

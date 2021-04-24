@@ -8,7 +8,7 @@ import Earth from './Earth'
 import Stars from './Stars'
 import Lights from './Lights'
 import Constellation from './Constellation'
-import { generatePolarConstellation2 } from '../../utils/ConstellationUtil'
+import { generatePolarConstellation2 } from '../../utils/constellationUtil'
 import { layerColors } from '../../config'
 import { RenderContext } from './VisualiserPanel'
 

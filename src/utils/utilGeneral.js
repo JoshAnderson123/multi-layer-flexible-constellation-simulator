@@ -45,7 +45,7 @@ export function formatxFlex(x) {
   return {
     ELCC: round(x.ELCC, 2),
     D: x.D, P: x.P, f: x.f, I: x.I,
-    J: x.J, Lm: x.Lm, Ld: x.Ld,
+    J: x.J, Lm: x.Lm, 
     avgN: x.avgN, avgR: x.avgR
   }
 }
@@ -69,8 +69,9 @@ export function downloadJson(jsonObj, exportName) {
 
 
 export function ln(x) { return Math.log(x) }
-export function max(x) { return Math.max(x) }
+export function max(...x) { return Math.max(...x) }
 export function ceil(x) { return Math.ceil(x) }
+export function floor(x) { return Math.floor(x) }
 
 
 //// Console.log functions without directory tag on the side (Cleaner) ////
@@ -134,12 +135,10 @@ export function generateTSB(inputs) {
     stratSingle: {
       J: inputs.strategy.J,
       Lm: '1',
-      Ld: '1'
     },
     stratMulti: {
       J: inputs.strategy.J,
-      Lm: inputs.strategy.Lm,
-      Ld: inputs.strategy.Ld
+      Lm: inputs.strategy.Lm
     },
     scenarios: {
       r: inputs.scenario.r,
@@ -185,7 +184,6 @@ export function flattenInputs(inputs) {
     S: inputs.scenario.S,
     J: inputs.strategy.J,
     Lm: inputs.strategy.Lm,
-    Ld: inputs.strategy.Ld,
     D: inputs.architecture.D,
     P: inputs.architecture.P,
     f: inputs.architecture.f,
@@ -258,11 +256,7 @@ export function matchConstantsFlex(x, varParams, constParams, flex) {
   if (flex === 'single') Lm = x.Lm === 1
   if (flex === 'multi') Lm = isAVarParam('Lm') ? true : x.Lm === constParams.Lm
 
-  let Ld = false
-  if (flex === 'single') Ld = x.Ld === 1
-  if (flex === 'multi') Ld = isAVarParam('Ld') ? true : x.Ld === constParams.Ld
-
-  return r && rec && σ && J && Lm && Ld
+  return r && rec && σ && J && Lm
 }
 
 
@@ -311,7 +305,7 @@ export function copyHeatmapToClipboard(HMResults) {
 
 
 export function copyResultsToClipboard(inputs, results) {
-  copyToClipboard(compressResults(inputs, results))
+  copyToClipboard(compressResultFile(inputs, results))
   // copyToClipboard(JSON.stringify({inputs, results: compressResults(inputs, results)}))
   // const data = { inputs, results }
   // copyToClipboard(JSON.stringify(data))
@@ -330,7 +324,7 @@ export function copyToClipboard(value) {
   // document.body.removeChild(elem);
 }
 
-export function compressResults(inputs, results) { // TODO change name to compressResultFile
+export function compressResultFile(inputs, results) {
 
   const IPR = calcInputParamRanges(inputs) // IPR = input param ranges
 
@@ -362,7 +356,6 @@ export function compressResults(inputs, results) { // TODO change name to compre
       I: flex.map(x => IPR.I.indexOf(x.I)),
       J: flex.map(x => IPR.J.indexOf(x.J)),
       Lm: flex.map(x => IPR.Lm.indexOf(x.Lm)),
-      Ld: flex.map(x => IPR.Ld.indexOf(x.Ld)),
       P: flex.map(x => IPR.P.indexOf(x.P)),
       avgN: flex.map(x => x.avgN),
       avgR: flex.map(x => x.avgR),
@@ -390,7 +383,7 @@ export function compressResults(inputs, results) { // TODO change name to compre
     }
   }
 
-  const compressResultsTemp = {inputs, results: { flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad), tradespace: compressTradespace(results.tradespace) }}
+  const compressResultsTemp = { inputs, results: { flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad), tradespace: compressTradespace(results.tradespace) } }
   const compressResultsTempStr = JSON.stringify(compressResultsTemp)
   const compressedResults = compressStr(compressResultsTempStr)
 
@@ -433,7 +426,6 @@ export function decompressResults(resultFile) { // inputs, results
         I: IPR.I[flex.I[i]],
         J: IPR.J[flex.J[i]],
         Lm: IPR.Lm[flex.Lm[i]],
-        Ld: IPR.Ld[flex.Ld[i]],
         P: IPR.P[flex.P[i]],
         avgN: flex.avgN[i],
         avgR: flex.avgR[i],
@@ -478,7 +470,7 @@ export function decompressResults(resultFile) { // inputs, results
 
   const IPR = calcInputParamRanges(inputs)
 
-  return ({ inputs, results: { flex: decompressFlex(results.flex), xTrad: decompressxTrad(results.xTrad), tradespace: deCompressTradespace(results.tradespace) }})
+  return ({ inputs, results: { flex: decompressFlex(results.flex), xTrad: decompressxTrad(results.xTrad), tradespace: deCompressTradespace(results.tradespace) } })
 }
 
 
@@ -502,7 +494,7 @@ export function findxFlex(p, results, type) {
 
 export function findFlex(p, strat, results, type) {
   if (type === 'single') return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === 1)
-  return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === strat.Lm && x.Ld === strat.Ld)
+  return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === strat.Lm)
 }
 
 export function findFamilyFromFlex(flex, tradespace) {
@@ -523,7 +515,7 @@ export function openResultsFile(evt, updateResults) {
   reader.onload = function (e) {
     try {
       // let resultFile = JSON.parse(e.target.result)
-      const {inputs, results} = decompressResults(e.target.result)
+      const { inputs, results } = decompressResults(e.target.result)
 
       updateResults(results, inputs)
 
@@ -577,4 +569,19 @@ export function hexToRGBA(hex, opacity) {
   const g = parseInt(`0x${hex.substring(2, 4)}`)
   const b = parseInt(`0x${hex.substring(4)}`)
   return `rgba(${r},${g},${b},${opacity})`
+}
+
+export function arrRange(len) {
+  return [...Array(len).keys()]
+}
+
+export function count(arr, v) {
+  return arr.reduce((t, c) => c === v ? t + 1 : t, 0)
+}
+
+export function calcFirstArc(start, cfgs) {
+  for (let i = 0; i < cfgs.length; i++) {
+    if (cfgs[i].cap > start) return { id: i, cap: cfgs[i].cap }
+  }
+  return { id: cfgs.length - 1, cap: cfgs[cfgs.length - 1].cap }
 }

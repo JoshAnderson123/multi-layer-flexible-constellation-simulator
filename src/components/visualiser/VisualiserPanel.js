@@ -16,7 +16,7 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
   let [constellation, setConstellation] = useState([])
   let [playing, setPlaying] = useState()
   let [playspeed, setPlayspeed] = useState(1)
-  let [currentStep, setCurrentStep] = useState(0)
+  let [currentStep, setCurrentStep] = useState(defaultSim.steps-1)
   let [visuResults, setVisuResults] = useState()
   let [viewLayers, setViewLayers] = useState([true, true, true, true, true])
   let prevConstellation = useRef(0)
@@ -42,6 +42,13 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
     })
   }
 
+  function updateVisuResults(val) {
+    setVisuResults(_ => {
+      prevConstellation.current = visuResults?.layers[currentStep]
+      return val
+    })
+  }
+
   function incrementStep() {
     if (currentStep === defaultSim.steps - playspeed) {
       setPlaying(false)
@@ -60,7 +67,7 @@ export default function VisualiserPanel({ setPanel, inputs, results }) {
         <PanelTopBar setPanel={setPanel} />
         <Flex f='FB' cn='w100 grow rel'>
           <VisualiserSideBar
-            inputs={inputs} results={results} visuResults={visuResults} setVisuResults={setVisuResults}
+            inputs={inputs} results={results} visuResults={visuResults} updateVisuResults={updateVisuResults}
             playing={playing} setPlaying={setPlaying} currentStep={currentStep} updateStep={updateStep}
             playspeed={playspeed} setPlayspeed={setPlayspeed}
           />

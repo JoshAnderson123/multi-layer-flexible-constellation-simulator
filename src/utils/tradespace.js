@@ -20,7 +20,6 @@ export function calcInputParamRanges(inputs) {
     σ: addParamArray(inputs.scenario.σ),
     J: addParamArray(inputs.strategy.J),
     Lm: [...addParamArray(inputs.strategy.Lm), 1],
-    Ld: [...addParamArray(inputs.strategy.Ld), 1],
     D: addParamArray(inputs.architecture.D),
     P: addParamArray(inputs.architecture.P),
     f: addParamArray(inputs.architecture.f),
@@ -36,8 +35,7 @@ export function calcResultParamRanges(inputs) {
     rec: addParamArray(inputs.scenario.rec),
     σ: addParamArray(inputs.scenario.σ),
     J: addParamArray(inputs.strategy.J),
-    Lm: addParamArray(inputs.strategy.Lm),
-    Ld: addParamArray(inputs.strategy.Ld)
+    Lm: addParamArray(inputs.strategy.Lm)
   }
 }
 

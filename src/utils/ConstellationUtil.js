@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import BufferGeometryUtils from '../utils/BufferGeometryUtils'
+import BufferGeometryUtils from './BufferGeometryUtils'
 import { render, ORBIT_RESOLUTION, FOOTPRINT_RESOLUTION, FOOTPRINT_SCALE_FACTOR, SCALE_FACTOR, EARTH_RADIUS_SCALED, OVERLAPPING_FOOTPRINT_FACTOR } from '../config'
 
 
@@ -191,4 +191,11 @@ export function generatePolarConstellation2(MEA, altitude, color) {
   const P = Math.ceil((2 * Math.PI) / ap) // Number of Planes
 
   return { planes: P, satellitesPerPlane: S, MEA, altitude, inclination: 85, color, halfRotation: true, spacingType: 'cross' }
+}
+
+
+export function newBasicMat(params, color) {
+  const newMat = new THREE.MeshBasicMaterial(params)
+  newMat.color.setHex(`0x${color}`).convertSRGBToLinear()
+  return newMat
 }

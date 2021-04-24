@@ -59,11 +59,13 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
           <ResultBtn imgSrc='3D.svg' text='3D Visualiser' func={() => setPanel('visualise')} ml='20px' />
         </Center>
         <Center mt='20px'>
-          <Center w='40px' h='40px' cn='bc1 c-l1 ptr hoverGrow rel' oc={() => copyResultsToClipboard(inputs, results)} >
-            <Img src='download.svg' w='60%' h='60%' cn='of-cont' />
+          <Center h='40px' p='0 10px' cn='bc1 c-l1 ptr hoverGrow rel' oc={() => copyResultsToClipboard(inputs, results)} >
+            <Img src='download.svg' h='60%' cn='of-cont' />
+            <Center cn='c-l1 font-small' ml='10px' >Download</Center>
           </Center>
-          <File id='upload-json2' ml='10px' w='40px' h='40px' cn='bc1 c-l1 ptr hoverGrow rel FC' onChange={e => openResultsFile(e, updateResults)}>
-          <Img src='upload.svg' w='60%' h='60%' cn='of-cont' />
+          <File id='upload-json2' ml='10px' h='40px' p='0 10px'  cn='bc1 c-l1 ptr hoverGrow rel FC' onChange={e => openResultsFile(e, updateResults)}>
+            <Img src='upload.svg' h='60%' cn='of-cont' />
+            <Center cn='c-l1 font-small' ml='10px' >Upload</Center>
           </File>
         </Center>
 
@@ -77,7 +79,7 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
       <Center cn='w100 font-title2 c-d1 bor-field rig' h='100px'>Results</Center>
       <Flex f='FCV' cn='w100 grow'>
         <Flex f='FB' w='940px' h='200px' cn={`bor-field-f bc-l2 ${results.xTrad ? '' : 'none'}`}> {/* Display: none is used rather than return null because the fields need to be in the DOM even if there are no results yet. Could be changed in future */}
-          <Flex f='FSV' cn='bor-field-r rig rel h100' w='200px' p='20px' z='100'>
+          <Flex f='FCV' cn='bor-field-r rig rel h100' w='200px' p='20px' z='100'>
             <Grid gtr='1fr 1fr 1fr' gg='0px' mt='-5px' cn='rel'>
               <DropdownConst id='c-r' name='r' options={paramRanges.r} />
               <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} />
@@ -89,7 +91,7 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
               oc={() => updateParams()}
             >
               View Results
-          </Center>
+            </Center>
           </Flex>
           {displayResults()}
         </Flex>

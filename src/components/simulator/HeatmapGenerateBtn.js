@@ -27,8 +27,7 @@ export default function HeatmapGenerateBtn({ results, varParams, paramRanges, se
         rec: parseConst('#c-rec'),
         σ: parseConst('#c-v'),
         J: parseConst('#c-J'),
-        Lm: parseConst('#c-Lm'),
-        Ld: parseConst('#c-Ld')
+        Lm: parseConst('#c-Lm')
       },
       output: document.querySelector('#opt').value
     }
@@ -65,7 +64,7 @@ export default function HeatmapGenerateBtn({ results, varParams, paramRanges, se
       // const row = []
       for (let i1 = 0; i1 < v1range.length; i1++) {
         const { flexS, flexM, xTrad } = getStrats(i1, i2)
-        const result = calcResult(xTrad, flexS, flexM, config.output) // TODO - fix xTrad - results.xTrad[0]
+        const result = calcResult(xTrad, flexS, flexM, config.output)
         data.push(result)
       }
     }

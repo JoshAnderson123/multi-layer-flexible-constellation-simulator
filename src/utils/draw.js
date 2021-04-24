@@ -355,6 +355,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   const STEP = V_GRAPH_WIDTH / simulation.inputs.steps
   const TICK_LEN = 7
 
+  drawAllScenarios()
   drawDemandLine()
   drawCapacityLine()
   drawCapMax()
@@ -545,11 +546,25 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
       drawEvolution('#ffffff', 'NL', ox + eox, oy + eoy)
       ctx.fillStyle = 'rgba(0,0,0,1)'
       ctx.fillText('New Layer', ox + eox + 12, oy + eoy + 5);
-      
+
       drawEvolution('#ffffff', 'recon', ox + eox, oy + eoy + es)
       ctx.fillStyle = 'rgba(0,0,0,1)'
       ctx.fillText('Reconfiguration', ox + eox + 12, oy + eoy + es + 5);
 
+    }
+  }
+
+  function drawAllScenarios() {
+    ctx.strokeStyle = 'rgba(180, 0, 0, 0.05)'
+    ctx.lineWidth = 1.5;
+
+    for(let s = 0; s < simulation.stochasticScenarios.length; s++) {
+      ctx.beginPath();
+      ctx.moveTo(calcX(0), calcY(0));
+      for (let d = 1; d <= simulation.inputs.steps; d++) {
+        ctx.lineTo(calcX(STEP * d), calcY(simulation.stochasticScenarios[s][d]))
+      }
+      ctx.stroke();
     }
   }
 }

@@ -1,5 +1,5 @@
 import React, { useRef, useLayoutEffect, useContext } from 'react';
-import { calcOffsetAngle } from '../../utils/ConstellationUtil'
+import { calcOffsetAngle } from '../../utils/constellationUtil'
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Zaxis, Yaxis } from '../../utils/constellationGeo';

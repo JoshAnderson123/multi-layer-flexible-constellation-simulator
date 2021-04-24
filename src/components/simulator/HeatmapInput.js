@@ -27,7 +27,6 @@ export default function HeatmapInput({ inputOptions, varParams, updateVarParams,
             <DropdownConst id='c-v' name='σ' options={paramRanges.σ} disabled={checkDisabled('σ')} />
             <DropdownConst id='c-J' name='J' options={paramRanges.J} disabled={checkDisabled('J')} />
             <DropdownConst id='c-Lm' name='Lm' options={paramRanges.Lm} disabled={checkDisabled('Lm')} />
-            <DropdownConst id='c-Ld' name='Ld' options={paramRanges.Ld} disabled={checkDisabled('Ld')} />
           </Grid>
         </Flex>
 

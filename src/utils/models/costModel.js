@@ -30,12 +30,12 @@ export function calcMasses(arch) {
   const { D, P, I } = arch
 
   // Calculate Dry Mass
-  const ISLMasses = { 'None': 1, 'Ring': 1.05, 'Mesh': 1.2 } // TODO: ISL not currently factored into the cost model
+  const ISLMasses = { 'None': 1, 'Ring': 1.05, 'Mesh': 1.2 }
   const Pd = 2089     // Default Power, W
   const Dd = 3.5      // Default Antenna Diameter, m
   const md = 260      // Default Dry Mass, kg
   const dw = 0.95     // Proportion of total mass that is dry mass
-  const mp_i = 0.45   // Proportion of dry mass thats Dry Instrument Mass, %
+  const mp_i = 0.3    // Proportion of dry mass thats Dry Instrument Mass, %
   const mp_b = 0.7    // Proportion of dry mass thats Dry Buss Mass, %
   const misl = ISLMasses[I] // Increase in mass from ISL, %
   const m = md * ((1 - mp_i) + (mp_i * (P / Pd))) * ((D / Dd) ** 2) * misl // Dry Mass
@@ -148,7 +148,7 @@ export function calcLCCComponents(imInfCosts, masses, n) {
 
   const LC = calcLaunchCost(masses.totalMass, n) // Launch Costs
   const PC = calcProdCost(SSCMCosts)             // Production Costs
-  const IDC = calcIDCost(SSCMCosts)              // Initial Development Costs - TODO
+  const IDC = calcIDCost(SSCMCosts)              // Initial Development Costs
   const OC = calcOMCost(SSCMCosts)               // Operations & Maintainence Costs
   const RC = calcReconfigCost(SSCMCosts)         // Reconfiguration Costs
 

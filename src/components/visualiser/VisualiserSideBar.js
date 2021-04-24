@@ -8,7 +8,7 @@ import { DropdownConst } from '../simulator/Dropdown'
 import { VP_LEFT, VP_RIGHT } from '../../config'
 import { drawVisualisationGraph } from '../../utils/draw'
 
-export default function VisualiserSideBar({ inputs, results, visuResults, setVisuResults, playing, setPlaying, currentStep, updateStep, setCurrentStrat, setPlayspeed }) {
+export default function VisualiserSideBar({ inputs, results, visuResults, updateVisuResults, playing, setPlaying, currentStep, updateStep, setCurrentStrat, setPlayspeed }) {
 
   const simulation = useRef()
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 })
@@ -51,31 +51,29 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
       const fixedParams = { D: xTrad.D.toString(), P: xTrad.P.toString(), f: xTrad.f.toString(), I: xTrad.I.toString() }
       const flexParams = { e: xTrad.e.toString(), a: xTrad.a.toString() }
       const family = generateArchitectures(fixedParams, flexParams)[0]
-      setVisuResults(simulation.current.runTradVisual({...family.cfgs[0], ...fixedParams}))
+      updateVisuResults(simulation.current.runTradVisual({ ...family.cfgs[0], ...fixedParams }))
     }
     if (stratType === 'flexS' || stratType === 'flexM') {
 
       let strat = {
         J: parseConst('#c-J'),
-        Lm: stratType === 'flexS' ? 1 : parseConst('#c-Lm'),
-        Ld: parseConst('#c-Ld'),
+        Lm: stratType === 'flexS' ? 1 : parseConst('#c-Lm')
       }
+
+      const flexParams = { e: inputs.architecture.e, a: inputs.architecture.a }
 
       if (stratType === 'flexS') {
         const flexS = (optimum === 'true') ? findxFlex(scen, results, 'single') : findFlex(scen, strat, results, 'single')
         const fixedParams = { D: flexS.D.toString(), P: flexS.P.toString(), f: flexS.f.toString(), I: flexS.I.toString() }
-        const flexParams = { e: inputs.architecture.e, a: inputs.architecture.a }
         const family = generateArchitectures(fixedParams, flexParams)[0]
-
-        setVisuResults(simulation.current.runFlexVisual(family, { J: flexS.J, Lm: flexS.Lm, Ld: flexS.Ld }))
+        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexS.J, Lm: flexS.Lm }))
       }
 
       if (stratType === 'flexM') {
         const flexM = (optimum === 'true') ? findxFlex(scen, results, 'multi') : findFlex(scen, strat, results, 'multi')
         const fixedParams = { D: flexM.D.toString(), P: flexM.P.toString(), f: flexM.f.toString(), I: flexM.I.toString() }
-        const flexParams = { e: inputs.architecture.e, a: inputs.architecture.a }
         const family = generateArchitectures(fixedParams, flexParams)[0]
-        setVisuResults(simulation.current.runFlexVisual(family, { J: flexM.J, Lm: flexM.Lm, Ld: flexM.Ld }))
+        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexM.J, Lm: flexM.Lm }))
       }
     }
 
@@ -138,7 +136,6 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
               <Flex f='FSV' cn='rel' l='0px'>
                 <DropdownConst id='c-J' name='J' options={paramRanges.J} onChange={runScenario} disabled={calcDisabled('strat')} />
                 <DropdownConst id='c-Lm' name='Lm' options={paramRanges.Lm} onChange={runScenario} disabled={calcDisabled('stratM')} />
-                <DropdownConst id='c-Ld' name='Ld' options={paramRanges.Ld} onChange={runScenario} disabled={calcDisabled('stratM')} />
               </Flex>
             </Grid>
           </Flex>
@@ -174,58 +171,42 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
         <Flex f='FS' cn='w100 rel' t='-5px' l='40px'>
           <DropdownConst id='simu-speed' name='Speed' options={['slow', 'medium', 'fast']} w='120px' onChange={e => updatePlayspeed(e)} />
 
-          <Center
-            w='40px' h='25px' mt='5px' ml='20px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={() => setPlaying(prev => !prev)}
-          >
-            <Img src={`${playing ? 'pause' : 'play'}.svg`} cn='of-cont' w='60%' h='60%' />
-          </Center>
 
-          <Center
-            w='20px' h='25px' mt='5px' ml='20px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={() => {
+          <SimulationBtn src={playing ? 'pause' : 'play'} w='40px' ml='20px' visuResults={visuResults}
+            updateFunc={() => {
+              if (currentStep === simulation.current.inputs.steps - 1) updateStep(() => 0)
+              setPlaying(prev => !prev)
+            }}
+          />
+
+          <SimulationBtn src='start' w='20px' ml='10px' visuResults={visuResults}
+            updateFunc={() => {
               updateStep(() => 0)
               setPlaying(false)
             }}
-          >
-            <Img src='start.svg' cn='of-cont' w='60%' h='60%' />
-          </Center>
+          />
 
-          <Center
-            w='20px' h='25px' mt='5px' ml='5px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={() => {
+          <SimulationBtn src='backward' w='20px' ml='5px' visuResults={visuResults}
+            updateFunc={() => {
               if (currentStep > 0) updateStep(prev => prev - 1)
               setPlaying(false)
             }}
-          >
-            <Img src='backward.svg' cn='of-cont' w='60%' h='60%' />
-          </Center>
+          />
 
-          <Center
-            w='20px' h='25px' mt='5px' ml='1px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={() => {
+
+          <SimulationBtn src='forward' w='20px' ml='1px' visuResults={visuResults}
+            updateFunc={() => {
               if (currentStep < simulation.current.inputs.steps - 1) updateStep(prev => prev + 1)
               setPlaying(false)
             }}
-          >
-            <Img src='forward.svg' cn='of-cont' w='60%' h='60%' />
-          </Center>
+          />
 
-          <Center
-            w='20px' h='25px' mt='5px' ml='5px'
-            cn={`c-l1 font-small us-none bc1 ptr hoverGrow`}
-            oc={() => {
+          <SimulationBtn src='end' w='20px' ml='5px' visuResults={visuResults}
+            updateFunc={() => {
               updateStep(() => simulation.current.inputs.steps - 1)
               setPlaying(false)
             }}
-          >
-            <Img src='end.svg' cn='of-cont' w='60%' h='60%' />
-          </Center>
-
+          />
 
         </Flex>
 
@@ -236,5 +217,20 @@ export default function VisualiserSideBar({ inputs, results, visuResults, setVis
       </Flex>
 
     </Flex >
+  )
+}
+
+function SimulationBtn({ updateFunc, src, visuResults, ...cssProps }) {
+
+  return (
+    <Center
+      {...cssProps}
+      h='25px' mt='5px'
+      cn={`c-l1 font-small us-none bc1 ${visuResults ? 'ptr hoverGrow' : ''}`}
+      o={visuResults ? '1' : '0.5'}
+      oc={visuResults ? updateFunc : () => {}}
+    >
+      <Img src={`${src}.svg`} cn='of-cont' w='60%' h='60%' />
+    </Center>
   )
 }
