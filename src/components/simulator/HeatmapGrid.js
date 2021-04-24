@@ -10,8 +10,8 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
 
   const [selectedVal, setSelectedVal] = useState({ id: -1 })
 
-  const cols = HMResults.config.varParams.v1.range.length // swaped from rows
-  const rows = HMResults.config.varParams.v2.range.length // Swaped from cols
+  const cols = HMResults.config.var.v1.range.length // swaped from rows
+  const rows = HMResults.config.var.v2.range.length // Swaped from cols
   const testArr = [...Array(rows * cols).keys()]
   const bounds = { min: Math.min(...HMResults.data), max: Math.max(...HMResults.data) }
 
@@ -30,13 +30,13 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
           {[...Array(cols).keys()].map(x =>
             <Center key={x} cn='bc-l1 rig ov-h'>
               <Center cn={`abs ${cols > 15 ? 'flip90' : ''}`} w={`${tickLen}px`}>
-                {HMResults.config.varParams.v1.range[x]}
+                {HMResults.config.var.v1.range[x]}
               </Center>
             </Center>)}
         </Grid>
         <Center w={`${gridW}px`} cn='bc-l1 h100'>
           <Center cn='abs font-grid-small c-d1'>
-            {formatParam[HMResults.config.varParams.v1.param]}
+            {formatParam[HMResults.config.var.v1.param]}
           </Center>
         </Center>
       </Flex>
@@ -44,7 +44,7 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
       <Flex f='FB' w={`${tickLen + axisTitleLen}px`} h={`${gridH}px`} t='0' l='0' cn='abs' >
         <Center w={`${axisTitleLen}px`} cn='bc-l1 h100'>
           <Center cn={`abs flip90 font-grid-small c-d1`} w={`${gridW}px`}>
-            {formatParam[HMResults.config.varParams.v2.param]}
+            {formatParam[HMResults.config.var.v2.param]}
           </Center>
         </Center>
         <Grid
@@ -53,7 +53,7 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
           cn='font-heatmap hm-text-color'
           bc='#ddd'
         >
-          {[...Array(rows).keys()].map(x => <Center key={x} cn='bc-l1 rig'>{HMResults.config.varParams.v2.range[x]}</Center>)}
+          {[...Array(rows).keys()].map(x => <Center key={x} cn='bc-l1 rig'>{HMResults.config.var.v2.range[x]}</Center>)}
         </Grid>
       </Flex>
 

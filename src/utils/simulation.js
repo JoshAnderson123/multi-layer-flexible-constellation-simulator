@@ -12,8 +12,10 @@ import { b } from './models/costModel'
  */
 export function createSimulation(inputs, arcs) {
 
-  const { T, μ, steps, start, numScenarios, r, capMax } = inputs
-  let σ = scaleTheta(inputs.σ)
+  const { T, μ, steps, start, r, capMax } = inputs
+  const numScenarios = inputs.σ === 0 ? 1 : inputs.numScenarios
+  const σ = scaleTheta(inputs.σ)
+
   const simulation = {}
   const [detScenario, detFinal] = deterministicScenario(T, μ, start, steps)
   const scenarios = stochasticScenarios(T, μ, σ, start, steps, numScenarios, detFinal)
@@ -110,7 +112,7 @@ export function createSimulation(inputs, arcs) {
         return OC[n]
       }
 
-      const maxExpReconSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
+      const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
 
       let ELCC = 0 // Initialise expected LCC
       let avgR = 0 // Initialise average number of reconfigurations
@@ -119,7 +121,7 @@ export function createSimulation(inputs, arcs) {
       for (let demand of scenarios) { // Run through every demand scenario
 
         let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
-        let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
+        let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
         let recs = [] // Initialise the log of reconfigurations
 
         for (let t = 1; t < demand.length; t++) { // Run through the scenario
@@ -133,13 +135,13 @@ export function createSimulation(inputs, arcs) {
             if (numberOf(layers) < Lm) {
               const nl = chooseEvolutionNewLayer(family, layers, totalCap, J) // Calculate the best architecture to add
               layers.push(nl) // Add new layer to the constellation
-              LCCstep += evolutionNLCosts(family, layers, maxExpReconSat) // Add NL evolution cost to LCC
+              LCCstep += evolutionNLCosts(family, layers, maxReconsPerSat) // Add NL evolution cost to LCC
               avgN++
             }
             // If an existing layer should be reconfigured (Recon evolution)
             else {
-              const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxExpReconSat) // Choose ID of best architecture to reconfigure to
-              LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxExpReconSat) // Add recon evolution cost to LCC    maxExpReconSat - curR
+              const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxReconsPerSat) // Choose ID of best architecture to reconfigure to
+              LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxReconsPerSat) // Add recon evolution cost to LCC    maxReconsPerSat - curR
               layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
               avgR++
               recs.push(bestRecon.a)
@@ -169,6 +171,8 @@ export function createSimulation(inputs, arcs) {
     const { J, Lm } = flexStratInputs // Extract flexible strategy inputs
     const dt = T / steps // Calculate Time step (years)
 
+    const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
+
     const results = {
       demand: testScenario,
       capacity: [],
@@ -176,7 +180,8 @@ export function createSimulation(inputs, arcs) {
       evolutions: [],
       layers: [],
       family,
-      strat: { J, Lm }
+      strat: { J, Lm },
+      maxReconsPerSat
     }
 
     const OC = {} // Initialise Ongoing & Mantenance cost cache
@@ -189,10 +194,8 @@ export function createSimulation(inputs, arcs) {
       return OC[n]
     }
 
-    const maxExpReconSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
-
     let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
-    let LCCarr = [startCosts(family, layers, maxExpReconSat)] // Initialise the LCC array
+    let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
     let recs = [] // Initialise the log of reconfigurations
 
     for (let t = 1; t < testScenario.length; t++) { // Run through the scenario
@@ -208,13 +211,13 @@ export function createSimulation(inputs, arcs) {
         if (numberOf(layers) < Lm) {
           const nl = chooseEvolutionNewLayer(family, layers, totalCap, J) // Calculate the best architecture to add
           layers.push(nl) // Add new layer to the constellation
-          LCCstep += evolutionNLCosts(family, layers, maxExpReconSat) // Add NL evolution cost to LCC
+          LCCstep += evolutionNLCosts(family, layers, maxReconsPerSat) // Add NL evolution cost to LCC
           results.evolutions.push({ evolution: 'NL', layer: layers.length - 1 })
         }
         // If an existing layer should be reconfigured (Recon evolution)
         else {
-          const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxExpReconSat) // Choose ID of best architecture to reconfigure to
-          LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxExpReconSat) // Add recon evolution cost to LCC
+          const bestRecon = chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxReconsPerSat) // Choose ID of best architecture to reconfigure to
+          LCCstep += evolutionReconMultiCosts(family, layers[bestRecon.a], bestRecon.b, layers, maxReconsPerSat) // Add recon evolution cost to LCC
           layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
           results.evolutions.push({ evolution: 'recon', layer: bestRecon.a })
           recs.push(bestRecon.a)
@@ -231,11 +234,6 @@ export function createSimulation(inputs, arcs) {
 
     return results
   }
-
-
-  // function NLTooBig(family, totalCap, J) {
-  //   return family.cfgs[0].cap > totalCap * (J - 1)
-  // }
 
 
   function maxCapacityOf(family) {
@@ -262,10 +260,19 @@ export function createSimulation(inputs, arcs) {
 
   function calcExpTotalRecons(J, family) { // Calculate the maximum expected reconfigurations in a demand scenario
     const firstArc = calcFirstArc(start, family.cfgs)
-    const maxRecons = family.cfgs.length - (firstArc.id + 1)
-    if (J === 1) return maxRecons // If J = 1, ln(J) will return an error. Return the max number of reconfigs (the number of configs in a family)
-    const expTemp = ln(capMax / firstArc.cap) / ln(J) // Calculate expected recons based on maxCap (Derivation based on exponential growth model) 
-    return Math.min(expTemp, maxRecons)  // Don't allow for more reconfigs then there are configurations available in a family
+
+    let count = 0, a = firstArc.id
+    while (family.cfgs[a].cap < capMax) {
+      for (let b = a + 1; b < family.cfgs.length; b++) {
+        if (family.cfgs[b].cap > family.cfgs[a].cap * J) { count++; a = b; break; }
+      }
+    }
+    return count
+
+    // const maxRecons = family.cfgs.length - (firstArc.id + 1)
+    // if (J === 1) return maxRecons // If J = 1, ln(J) will return an error. Return the max number of reconfigs (the number of configs in a family)
+    // const expTemp = ln(capMax / firstArc.cap) / ln(J) // Calculate expected recons based on maxCap (Derivation based on exponential growth model) 
+    // return Math.min(expTemp, maxRecons)  // Don't allow for more reconfigs then there are configurations available in a family
   }
 
 
@@ -294,7 +301,7 @@ export function createSimulation(inputs, arcs) {
  * @param {object} inputs Simulation input parameters
  * @return {object} The ID for the next architecture to evolve to
  */
-  function chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxExpReconSat) { // Return a new constellation ID that fits the capacity jump criteria
+  function chooseEvolutionReconMulti(family, layers, totalCap, J, recs, maxReconsPerSat) { // Return a new constellation ID that fits the capacity jump criteria
 
     const reqCapJump = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
     const testCapJump = (b, aID) => family.cfgs[b].cap - family.cfgs[layers[aID]].cap // The tested jump in capacity from arch a to b
@@ -303,7 +310,7 @@ export function createSimulation(inputs, arcs) {
 
     for (let aID = 0; aID < layers.length; aID++) { // a = index of architecture in layers
 
-      if (count(recs, aID) === maxExpReconSat) continue
+      if (count(recs, aID) === maxReconsPerSat) continue
 
       let b = layers[aID] + 1 // Start with the next evolution from layers[aID]
 
@@ -328,7 +335,7 @@ export function createSimulation(inputs, arcs) {
     const reqCapJump = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
 
     let nl = 0
-    while (betterEvolution(family, nl, family.cfgs[nl].cap < reqCapJump || sameAltitude(family.cfgs, layers, nl)  )) nl++
+    while (betterEvolution(family, nl, family.cfgs[nl].cap < reqCapJump || sameAltitude(family.cfgs, layers, nl))) nl++
     return nl
   }
 
@@ -354,11 +361,11 @@ export function createSimulation(inputs, arcs) {
   }
 
 
-  function startCosts(family, arcs, maxExpReconSat) {
+  function startCosts(family, arcs, maxReconsPerSat) {
     const IDC = family.cfgs[arcs[0]].costs.IDC
     const PC = family.cfgs[arcs[0]].costs.PC
     const LC = family.cfgs[arcs[0]].costs.LC
-    const RC = maxExpReconSat * PC * inputs.reconCost
+    const RC = maxReconsPerSat * PC * inputs.reconCost
     return IDC + PC + LC + RC
   }
 
@@ -370,14 +377,14 @@ export function createSimulation(inputs, arcs) {
    * @param {object} b ID of next arhitecture to evolve to
    * @return {number} Cost ($M)
    */
-  function evolutionNLCosts(family, arcs, maxExpReconSat) {
+  function evolutionNLCosts(family, arcs, maxReconsPerSat) {
     const newArch = family.cfgs[newestLayer(arcs)]
     const newSats = newArch.n
     const newTotalN = calcTotalN(arcs, family) // Total number of satellites after new layer
 
     const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
     const LC = calcLaunchCost(family.m.totalMass, newSats)
-    const RC = maxExpReconSat * PC * inputs.reconCost
+    const RC = maxReconsPerSat * PC * inputs.reconCost
 
     return PC + LC + RC
   }
@@ -390,7 +397,7 @@ export function createSimulation(inputs, arcs) {
 * @param {object} b ID of next arhitecture to evolve to
 * @return {number} Cost ($M)
 */
-  function evolutionReconMultiCosts(family, a, b, arcs, maxExpReconSat) {
+  function evolutionReconMultiCosts(family, a, b, arcs, maxReconsPerSat) {
 
     const currArch = family.cfgs[a]
     const nextArch = family.cfgs[b]
@@ -399,7 +406,7 @@ export function createSimulation(inputs, arcs) {
 
     const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
     const LC = calcLaunchCost(family.m.totalMass, newSats)
-    const RC = maxExpReconSat * PC * inputs.reconCost
+    const RC = maxReconsPerSat * PC * inputs.reconCost
 
     return PC + LC + RC
   }
@@ -453,7 +460,7 @@ export function createSimulation(inputs, arcs) {
   }
 
   function sameAltitude(cfgs, layers, nl) {
-    for(let layer of layers) {
+    for (let layer of layers) {
       if (cfgs[layer].a === cfgs[nl].a) return true
     }
     return false

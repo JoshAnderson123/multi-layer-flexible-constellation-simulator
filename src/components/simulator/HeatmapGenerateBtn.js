@@ -1,18 +1,18 @@
 import React from 'react'
 import { Center } from '../blocks/blockAPI'
 import { invertParam } from '../../config'
-import { calcResult, matchConstantsFlex, matchConstantsTrad, parseConst } from '../../utils/utilGeneral'
+import { calcResult, findxFlex, matchConstantsFlex, matchConstantsTrad, parseConst } from '../../utils/utilGeneral'
 
-export default function HeatmapGenerateBtn({ results, varParams, paramRanges, setHMResults }) {
+export default function HeatmapGenerateBtn({ results, params, paramRanges, setHMResults }) {
 
-  function sameParams() { return (varParams.v1 === varParams.v2) }
+  function sameParams() { return (params.var.v1 === params.var.v2) }
 
   function generateResultMatrix() {
 
     if (sameParams()) return
 
     const config = {
-      varParams: {
+      var: {
         v1: {
           param: invertParam[document.querySelector('#v1').value],
           range: paramRanges[invertParam[document.querySelector('#v1').value]]
@@ -22,37 +22,42 @@ export default function HeatmapGenerateBtn({ results, varParams, paramRanges, se
           range: paramRanges[invertParam[document.querySelector('#v2').value]]
         },
       },
-      constParams: {
+      con: {
         r: parseConst('#c-r'),
         rec: parseConst('#c-rec'),
         σ: parseConst('#c-v'),
         J: parseConst('#c-J'),
-        Lm: parseConst('#c-Lm')
+        Lm: parseConst('#c-Lm'),
+        optimal: parseConst('#c-optimal', true)
       },
       output: document.querySelector('#opt').value
     }
 
-    const v1range = config.varParams.v1.range
-    const v2range = config.varParams.v2.range
+    const v1range = config.var.v1.range
+    const v2range = config.var.v2.range
+    const v1param = config.var.v1.param
+    const v2param = config.var.v2.param
 
     function getStrats(i1, i2) {
 
-      const flexS = results.flex.find(x =>
-        x[varParams.v1] === v1range[i1] &&
-        x[varParams.v2] === v2range[i2] &&
-        matchConstantsFlex(x, varParams, config.constParams, 'single')
-        // x.Lm === 1
-      )
+      function getFlexStrat(type) {
+        if (config.con.optimal === 'true') {
+          const scen = {r: params.con.r, rec: params.con.rec, σ: params.con.σ, [v1param]: v1range[i1], [v2param]: v2range[i2] }
+          return findxFlex(scen, results, type)
+        }
+        return results.flex.find(x =>
+          x[v1param] === v1range[i1] &&
+          x[v2param] === v2range[i2] &&
+          matchConstantsFlex(x, params.var, config.con, type)
+        )
+      }
 
-      const flexM = results.flex.find(x =>
-        x[varParams.v1] === v1range[i1] &&
-        x[varParams.v2] === v2range[i2] &&
-        matchConstantsFlex(x, varParams, config.constParams, 'multi')
-        // x.Lm > 1
-      )
+      const flexS = getFlexStrat('single')
+
+      const flexM = getFlexStrat('multi')
 
       const xTrad = results.xTrad.find(x =>
-        matchConstantsTrad(x, varParams, config.constParams)
+        matchConstantsTrad(x, params.var, config.con)
       )
 
       return { flexS, flexM, xTrad }

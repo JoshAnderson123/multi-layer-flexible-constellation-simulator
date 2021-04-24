@@ -64,18 +64,18 @@ export const defaultInputs_3 = {
 }
 
 export const formatParam = {
-  r: 'Discount Rate',
-  rec: 'Reconfig Cost',
-  σ: 'Volatility',
-  S: 'Num Scenarios',
-  J: 'Capacity Jump',
-  Lm: 'Max Layers',
-  D: 'Antenna Diameter',
-  P: 'Transmitter Power',
-  f: 'Transmitter Frequency',
-  I: 'Inter Satellite Links',
-  a: 'Altitude',
-  e: 'Min.Elev.Angle',
+  'r': 'Discount Rate',
+  'rec': 'Reconfig Cost',
+  'σ': 'Volatility',
+  'S': 'Num Scenarios',
+  'J': 'Capacity Jump',
+  'Lm': 'Max Layers',
+  'D': 'Antenna Diameter',
+  'P': 'Transmitter Power',
+  'f': 'Transmitter Frequency',
+  'I': 'Inter Satellite Links',
+  'a': 'Altitude',
+  'e': 'Min.Elev.Angle',
 }
 
 export const invertParam = Object.keys(formatParam).reduce((ip, param) => ({...ip, [formatParam[param]]: param }), {})
