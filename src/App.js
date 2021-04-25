@@ -21,7 +21,7 @@ function App() {
   }
 
   return (
-    <Center cn='fvwh ov-h'>
+    <Center cn='fvwh ov-h bc2'>
       {panel ? <PanelContainer panel={panel} setPanel={setPanel} inputs={inputs} setInputs={setInputs} results={results} updateResults={updateResults} /> : null}
       {!panel ? <RestartBtn setPanel={setPanel} /> : null}
     </Center>

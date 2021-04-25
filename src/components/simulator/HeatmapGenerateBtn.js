@@ -78,7 +78,7 @@ export default function HeatmapGenerateBtn({ results, params, paramRanges, setHM
 
   return (
     <Center
-      w='230px' h='30px' mt='10px'
+      w='230px' h='50px' mt='20px'
       cn={`c-l1 font-small us-none ${sameParams() ? 'bc-w' : 'bc1 ptr hoverGrow'}`}
       o={sameParams() ? '0.5' : '1'}
       oc={() => generateResultMatrix()}

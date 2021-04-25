@@ -335,17 +335,18 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   const V_GRAPH_WIDTH = V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT
   const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM
 
-  const demandStroke = 'rgba(180, 0, 0, 0.8)'
-  const capacityStroke = 'rgba(180, 0, 180, 1)' // 100,100,100
+  const demandStroke = 'rgba(255, 50, 50, 1)'
+  const capacityStroke = 'rgba(180, 180, 180, 1)' // 100,100,100
   const capMaxStroke = 'rgba(0, 0, 255, 1)'
+  const textColor = 'hsl(0,0%,80%)'
 
-  const evolutionRadius = 5
-  const NLWidth = 3
+  const evlRad = 5
+  const NLWidth = 4
 
   ctx.clearRect(0, 0, c.width, c.height)
-  ctx.fillStyle = `rgba(240,240,240,1)`
+  ctx.fillStyle = `hsl(0,0%,40%)`
   ctx.fillRect(0, 0, c.width, c.height)
-  ctx.fillStyle = `rgba(255,255,255,1)`
+  ctx.fillStyle = `hsl(0,0%,25%)`
   ctx.fillRect(VP_LEFT, VP_TOP, V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT, V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM)
 
   const SCALE_FACTOR = 1
@@ -388,15 +389,47 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
   function drawEvolution(color, type, x, y) {
     ctx.fillStyle = color
-    ctx.lineWidth = type === 'NL' ? NLWidth : 1
-    ctx.beginPath();
-    ctx.arc(x, y, evolutionRadius, 0, Math.PI * 2);
-    ctx.fill();
+    const evolutionShaddow = 'rgba(0,0,0,0.4)'
+    
+    if (type === 'NL') {
+      ctx.fillStyle = evolutionShaddow
+      ctx.fillRect(sharpen(x - (evlRad+5)), sharpen(y - (evlRad+5)), (evlRad+5) * 2, (evlRad+5) * 2)
+      ctx.fillStyle = color
+      ctx.fillRect(sharpen(x - (evlRad+1)), sharpen(y - (evlRad+1)), (evlRad+1) * 2, (evlRad+1) * 2)
+    } else {
 
-    ctx.strokeStyle = color
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(0,0,0,0.8)'
-    ctx.stroke();
+      ctx.fillStyle = evolutionShaddow
+      ctx.beginPath();
+      ctx.arc(x, y, evlRad+4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = color
+      ctx.beginPath();
+      ctx.arc(x, y, evlRad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // ctx.lineWidth = type === 'NL' ? NLWidth+1 : 2
+    // ctx.strokeStyle = 'rgba(255,255,255,0.4)'
+    // ctx.stroke();
+    // ctx.lineWidth = type === 'NL' ? NLWidth : 1
+    // ctx.strokeStyle = color
+    // ctx.stroke();
+    // ctx.strokeStyle = 'rgba(0,0,0,0.4)'
+    // ctx.stroke();
+  }
+
+  function drawAllScenarios() {
+    ctx.strokeStyle = 'rgba(255, 50, 50, 0.05)'
+    ctx.lineWidth = 1.5;
+
+    for(let s = 0; s < simulation.stochasticScenarios.length; s++) {
+      ctx.beginPath();
+      ctx.moveTo(calcX(0), calcY(0));
+      for (let d = 1; d <= simulation.inputs.steps; d++) {
+        ctx.lineTo(calcX(STEP * d), calcY(simulation.stochasticScenarios[s][d]))
+      }
+      ctx.stroke();
+    }
   }
 
   function drawDemandLine() {
@@ -458,8 +491,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     const TICK_STEP = V_GRAPH_WIDTH / defaultSim.T
     ctx.font = "12px Arial";
     ctx.textAlign = "center";
-    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
     ctx.lineWidth = 1;
 
     for (let i = 0; i < defaultSim.T; i++) {
@@ -475,8 +508,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     const tickInterval = 5e6
     ctx.font = "12px Arial";
     ctx.textAlign = "right";
-    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
     ctx.lineWidth = 1;
 
     for (let cap = 0; cap < MAX_DC; cap += tickInterval) {
@@ -488,12 +521,12 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   }
 
   function drawTitles() {
-    ctx.font = "16px Arial";
+    ctx.font = "20px Arial";
     ctx.textAlign = "center";
-    ctx.strokeStyle = 'rgba(0, 0, 0, 1)'
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
 
-    ctx.fillText('Year', VP_LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 40);
+    ctx.fillText('Year', VP_LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 50);
 
     drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Capacity', -Math.PI / 2)
   }
@@ -501,7 +534,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   function drawLegend() {
     ctx.font = "12px Arial";
     ctx.textAlign = "left";
-    ctx.fillStyle = 'rgba(255, 255, 255, 1)'
+    ctx.fillStyle = 'hsl(0,0%,40%)'
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
     ctx.lineWidth = 1;
 
@@ -520,7 +553,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
       const ls = 17 // Line Spacing
       const lw = 25 // Line width
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+      ctx.fillStyle = textColor
 
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = demandStroke
@@ -540,31 +573,17 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
     function drawLegendEvolutions() {
       const eox = 100
-      const eoy = 12
-      const es = 17 // Line Spacing
+      const eoy = 18
+      const es = 25 // Line Spacing
 
-      drawEvolution('#ffffff', 'NL', ox + eox, oy + eoy)
-      ctx.fillStyle = 'rgba(0,0,0,1)'
+      drawEvolution('#dddddd', 'NL', ox + eox, oy + eoy)
+      ctx.fillStyle = textColor
       ctx.fillText('New Layer', ox + eox + 12, oy + eoy + 5);
 
-      drawEvolution('#ffffff', 'recon', ox + eox, oy + eoy + es)
-      ctx.fillStyle = 'rgba(0,0,0,1)'
+      drawEvolution('#dddddd', 'recon', ox + eox, oy + eoy + es)
+      ctx.fillStyle = textColor
       ctx.fillText('Reconfiguration', ox + eox + 12, oy + eoy + es + 5);
 
-    }
-  }
-
-  function drawAllScenarios() {
-    ctx.strokeStyle = 'rgba(180, 0, 0, 0.05)'
-    ctx.lineWidth = 1.5;
-
-    for(let s = 0; s < simulation.stochasticScenarios.length; s++) {
-      ctx.beginPath();
-      ctx.moveTo(calcX(0), calcY(0));
-      for (let d = 1; d <= simulation.inputs.steps; d++) {
-        ctx.lineTo(calcX(STEP * d), calcY(simulation.stochasticScenarios[s][d]))
-      }
-      ctx.stroke();
     }
   }
 }

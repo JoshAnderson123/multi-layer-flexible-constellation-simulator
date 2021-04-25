@@ -19,48 +19,46 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
 
   return (
     <Center>
-      <Flex f='FSV' w={`${gridW}px`} h={`${tickLen + axisTitleLen}px`} b='0' r='0' cn='abs' >
+
+      <Flex f='FSV' w={`${gridW}px`} h={`${tickLen + axisTitleLen}px`} b='0' r='0' cn='abs ct1' >
         <Grid
           gtc={`repeat(${cols}, 1fr)`} gg='1px'
           w={`${gridW}px`} h={`${tickLen}px`}
-          cn='font-heatmap hm-text-color'
-          bc='#ddd'
-
+          cn='font-heatmap bc2-3'
         >
           {[...Array(cols).keys()].map(x =>
-            <Center key={x} cn='bc-l1 rig ov-h'>
+            <Center key={x} cn='rig ov-h'>
               <Center cn={`abs ${cols > 15 ? 'flip90' : ''}`} w={`${tickLen}px`}>
                 {HMResults.config.var.v1.range[x]}
               </Center>
             </Center>)}
         </Grid>
-        <Center w={`${gridW}px`} cn='bc-l1 h100'>
-          <Center cn='abs font-grid-small c-d1'>
+        <Center w={`${gridW}px`} cn='h100'>
+          <Center cn='abs font-grid-small'>
             {formatParam[HMResults.config.var.v1.param]}
           </Center>
         </Center>
       </Flex>
 
-      <Flex f='FB' w={`${tickLen + axisTitleLen}px`} h={`${gridH}px`} t='0' l='0' cn='abs' >
-        <Center w={`${axisTitleLen}px`} cn='bc-l1 h100'>
-          <Center cn={`abs flip90 font-grid-small c-d1`} w={`${gridW}px`}>
+      <Flex f='FB' w={`${tickLen + axisTitleLen}px`} h={`${gridH}px`} t='0' l='0' cn='abs ct1' >
+        <Center w={`${axisTitleLen}px`} cn='h100'>
+          <Center cn={`abs flip90 font-grid-small`} w={`${gridW}px`}>
             {formatParam[HMResults.config.var.v2.param]}
           </Center>
         </Center>
         <Grid
           gtr={`repeat(${rows}, 1fr)`} gg='1px'
           w={`${tickLen}px`} h={`${gridH}px`}
-          cn='font-heatmap hm-text-color'
-          bc='#ddd'
+          cn='font-heatmap bc2-3'
         >
-          {[...Array(rows).keys()].map(x => <Center key={x} cn='bc-l1 rig'>{HMResults.config.var.v2.range[x]}</Center>)}
+          {[...Array(rows).keys()].map(x => <Center key={x} cn='rig'>{HMResults.config.var.v2.range[x]}</Center>)}
         </Grid>
       </Flex>
 
       <Grid
         gtr={`repeat(${rows}, 1fr)`} gtc={`repeat(${cols}, 1fr)`}
         w={`${gridW}px`} h={`${gridH}px`} t='0' r='0'
-        cn='font-heatmap hm-text-color abs'
+        cn='font-heatmap abs'
         oml={() => setSelectedVal({ id: -1 })}
       >
         {testArr.map(i => <HeatmapItem key={i} i={i} HMResults={HMResults} viewValues={viewValues} viewHover={viewHover} scale={scale} setSelectedVal={setSelectedVal} />)}

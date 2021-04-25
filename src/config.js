@@ -158,7 +158,7 @@ export const GRAPH_HEIGHT = CANVAS_HEIGHT - CP_TOP - CP_BOTTOM;
 //// VISUALISER GRAPH ////
 export const VP_TOP = 0;
 export const VP_RIGHT = 0;
-export const VP_BOTTOM = 70;
+export const VP_BOTTOM = 80;
 export const VP_LEFT = 80;
 
 

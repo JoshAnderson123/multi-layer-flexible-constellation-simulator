@@ -14,16 +14,18 @@ export default function HeatmapInput({ inputOptions, params, updateParams, param
   }
 
   return (
-    <Flex f='FSVS' cn='bor-field-r h100' w='400px' p='40px'>
+    <Flex f='FSVS' cn='bor-field-r h100 ct1' w='450px' p='30px 70px'>
 
         <Flex f='FSVS'>
           <Flex f='FS' cn='font-title'>Variables</Flex>
+          <Center cn='w100 bc2-3' h='1px' m='10px 0' />
           <DropdownVar id='v1' name='v1' sel='Capacity Jump' options={inputOptions} onChange={() => updateParams('v1')} />
           <DropdownVar id='v2' name='v2' options={inputOptions} onChange={() => updateParams('v2')} />
         </Flex>
 
         <Flex f='FSVS' mt='50px'>
           <Flex f='FS' cn='font-title'>Contants</Flex>
+          <Center cn='w100 bc2-3' h='1px' m='10px 0' />
           <Grid gtc='1fr 1fr 1fr' gg='0 15px' cn='rel' l='-20px'>
             <DropdownConst id='c-r' name='r' options={paramRanges.r} sel={params.con.r} disabled={checkDisabled('r')} onChange={() => updateParams('r')} />
             <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} sel={params.con.rec} disabled={checkDisabled('rec')} onChange={() => updateParams('rec')} />
@@ -36,6 +38,7 @@ export default function HeatmapInput({ inputOptions, params, updateParams, param
 
         <Flex f='FSVS' mt='50px'>
           <Flex f='FS' cn='font-title'>Output</Flex>
+          <Center cn='w100 bc2-3' h='1px' m='10px 0' />
           <DropdownOpt id='opt' name='Output' options={outputOptions} />
           <HeatmapGenerateBtn results={results} params={params} paramRanges={paramRanges} setHMResults={setHMResults} />
         </Flex>

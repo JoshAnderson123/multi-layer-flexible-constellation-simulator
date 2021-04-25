@@ -9,13 +9,15 @@ export default function VisualiserStatsPanelBottom({ visuResults }) {
     return 'Multi-Layer Flexible'
   })()
 
+  const statOp = '0.8' // Stat Opacity
+
   function calcDeploymentStrategy() {
 
     const info = []    
 
-    info.push(<Center>{`Approach: ${approach}`}</Center>)
-    if (approach !== 'Traditional') info.push(<Center>{`Capacity Jump: ${visuResults.strat.J}`}</Center>)
-    if (approach === 'Multi-Layer Flexible') info.push(<Center>{`Max Layers: ${visuResults.strat.Lm}`}</Center>)
+    info.push(<Center o={statOp}>{`Approach: ${approach}`}</Center>)
+    if (approach !== 'Traditional') info.push(<Center o={statOp} >{`Capacity Jump: ${visuResults.strat.J}`}</Center>)
+    if (approach === 'Multi-Layer Flexible') info.push(<Center o={statOp}>{`Max Layers: ${visuResults.strat.Lm}`}</Center>)
 
     return (
       <Flex f='FSVS' cn='font-stat-small c-ls'>
@@ -28,11 +30,11 @@ export default function VisualiserStatsPanelBottom({ visuResults }) {
 
     const info = []    
 
-    info.push(<Center>{`Antenna Diameter: ${visuResults.family.D}m`}</Center>)
-    info.push(<Center>{`Transmitter Power: ${visuResults.family.P}W`}</Center>)
-    info.push(<Center>{`Downlink Frequency: ${visuResults.family.f}GHz`}</Center>)
-    info.push(<Center>{`Inter-Satellite Links: ${visuResults.family.I}`}</Center>)
-    if (approach !== 'Traditional') info.push(<Center>{`Max Reconfigurations: ${visuResults.maxReconsPerSat}`}</Center>)
+    info.push(<Center o={statOp}>{`Antenna Diameter: ${visuResults.family.D}m`}</Center>)
+    info.push(<Center o={statOp}>{`Transmitter Power: ${visuResults.family.P}W`}</Center>)
+    info.push(<Center o={statOp}>{`Downlink Frequency: ${visuResults.family.f}GHz`}</Center>)
+    info.push(<Center o={statOp}>{`Inter-Satellite Links: ${visuResults.family.I}`}</Center>)
+    if (approach !== 'Traditional') info.push(<Center o={statOp}>{`Max Reconfigurations: ${visuResults.maxReconsPerSat}`}</Center>)
 
     return (
       <Flex f='FSVS' cn='font-stat-small c-ls'>
@@ -42,7 +44,7 @@ export default function VisualiserStatsPanelBottom({ visuResults }) {
   }
 
   return (
-    <Flex f='FSVS' cn='c-l1 abs' l='25px' b='20px'>
+    <Flex f='FSVS' cn='ct1 abs' l='25px' b='20px'>
       <Center cn='font-stat-title'>Deployment Strategy</Center>
       {calcDeploymentStrategy()}
       <Center cn='font-stat-title' mt='25px'>Satellite Design</Center>

@@ -13,7 +13,7 @@ export default function VisualiserStatsPanelTop({ currentStep, visuResults, view
   }
 
   return (
-    <Flex f='FSVS' cn='c-l1 abs' l='25px' t='20px'>
+    <Flex f='FSVS' cn='ct1 abs' l='25px' t='20px'>
       <Center cn='font-stat-title-big'>{calculateDate(currentStep, defaultSim.steps, defaultSim.T)}</Center>
       <Flex f='FSVS' cn='font-stat-medium c-ls'>
         <Center>{`Demand: ${shortNumber(visuResults.demand[currentStep])}`}</Center>

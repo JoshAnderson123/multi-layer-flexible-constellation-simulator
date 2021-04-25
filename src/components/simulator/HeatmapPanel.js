@@ -50,9 +50,9 @@ export default function HeatmapPanel({ inputs, results, setPanel }) { // w='1150
 
       <PanelTopBar setPanel={setPanel} />
 
-      <Center cn='w100 font-title2 c-d1 bor-field rig' h='100px'>Heatmap</Center>
+      <Center cn='w100 font-title2 ct1 bc2-2 bor-field rig' h='100px'>Heatmap</Center>
 
-      <Flex f='FB' cn='grow w100'>
+      <Flex f='FB' cn='grow w100 bc2'>
 
         <HeatmapInput
           inputOptions={inputOptions}

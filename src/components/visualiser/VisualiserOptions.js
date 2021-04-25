@@ -9,7 +9,7 @@ export default function VisualiserOptions({ renderCtx, setRenderCtx }) {
 
   return (
     <Flex f='FSVE' cn='abs' t='20px' r='20px'>
-      <Center w='30px' h='30px' cn='ptr' o={viewOptions ? '1' : '0.5'} oc={() => setViewOptions(prev => !prev)}>
+      <Center w='30px' h='30px' cn='ptr' o={viewOptions ? '0.85' : '0.4'} oc={() => setViewOptions(prev => !prev)}>
         <Img src='eye.svg' w='100%' h='100%' />
       </Center>
       {

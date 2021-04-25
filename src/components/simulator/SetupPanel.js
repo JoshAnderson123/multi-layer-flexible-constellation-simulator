@@ -9,17 +9,17 @@ const indent = '10px'
 
 export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050px' h='900px'
 
-  const [viewArc, setViewArc] = useState(false)
-  const [viewSce, setViewSce] = useState(false)
+  const [viewArc, setViewArc] = useState(true)
+  const [viewSce, setViewSce] = useState(true)
   const [viewStr, setViewStr] = useState(true)
 
   const canRun = calcCanRun(inputs)
 
   return (
-    <Flex f='FSV' w='100%' h='100%' bc='#ddd' cn='rel bsh3'>
+    <Flex f='FSV' w='100%' h='100%' cn='rel bc2'>
       <PanelTopBar setPanel={setPanel} />
-      <Center cn='w100 font-title2 c-d1 bor-field rig' h='100px'>Multi-Layer Flexible Constellation Simulator</Center>
-      <Flex f='FSV' p='0 20%' cn='c-d1 w100 font-grid rel bor-field grow ovy-a'>
+      <Center cn='w100 font-title2 ct1 bc2-2 bor-field rig' h='100px'>Multi-Layer Flexible Constellation Simulator</Center>
+      <Flex f='FSV' p='0 20%' cn='ct1 w100 font-grid rel bor-field grow ovy-a'>
         <AttrContainer
           title='Architectures' type='architecture' inputs={inputs} setInputs={setInputs}
           view={viewArc} setView={setViewArc}
@@ -34,8 +34,8 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
         />
         <Flex f='FS' cn='w100 font-grid-small c-d2' mt='30px'>{`Total Unit Simulations: ${calcTotalUnitSimulations(inputs)}`}</Flex>
       </Flex>
-      <Center cn='w100 font-title2 c-d1 rig' h='100px'>
-        <Center w='300px' h='50px' cn={`bc1 c-l1 font-btn us-none ${canRun ? 'ptr hoverGrow' : ''}`} o={canRun ? '1' : '0.5'} oc={() => canRun ? setPanel('running') : null} >
+      <Center cn='w100 font-title2 c-d1 bc2-2 rig' h='100px'>
+        <Center w='280px' h='60px' cn={`bc1 c-l1 font-btn bshbtn2 us-none ${canRun ? 'ptr hoverGrow' : ''}`} o={canRun ? '1' : '0.5'} oc={() => canRun ? setPanel('running') : null} >
           {`Run Simulation (${estimateTime(inputs)})`}
         </Center>
       </Center>
@@ -79,10 +79,10 @@ function AttrContainer({ title, type, inputs, setInputs, view, setView }) { // t
 
 function Header() {
   return (
-    <Grid gtc={feildTC} cn='w100 bor-field' h='30px'>
-      <Flex f='FS' cn='bc-l2' pl={indent}>Param</Flex>
-      <Flex f='FS' cn='bc-l2' pl={indent}>Range</Flex>
-      <Flex f='FS' cn='bc-l2' pl={indent}>Entries</Flex>
+    <Grid gtc={feildTC} cn='w100 bor-field bc2-2' h='30px'>
+      <Flex f='FS' pl={indent}>Param</Flex>
+      <Flex f='FS' pl={indent}>Range</Flex>
+      <Flex f='FS' pl={indent}>Entries</Flex>
     </Grid>
   )
 }
@@ -101,9 +101,9 @@ function Record({ type, param, range, setInputs }) {
 
   return (
     <Grid gtc={feildTC} cn='w100 bor-field' h='25px'>
-      <Flex f='FS' cn='bc-l2' pl={indent}>{formatParam[param]}</Flex>
-      <Input value={range} cn='font-grid b-none' pl={indent} onChange={e => updateRange(e)} />
-      <Flex f='FS' cn='bc-l2' pl={indent}>{entries}</Flex>
+      <Flex f='FS' cn='bc2-2' pl={indent}>{formatParam[param]}</Flex>
+      <Input value={range} cn='font-grid b-none bc2-4' pl={indent} onChange={e => updateRange(e)} />
+      <Flex f='FS' cn='bc2-2' pl={indent}>{entries}</Flex>
     </Grid>
   )
 }

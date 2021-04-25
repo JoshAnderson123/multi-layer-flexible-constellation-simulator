@@ -15,7 +15,7 @@ export default function PanelContainer({ panel, setPanel, inputs, setInputs, res
   }
 
   return (
-    <Center cn='f abs ov-h' bc='rgba(0,0,0,0.6)' oc={e => hidePopup(e)} >
+    <Center cn='f abs ov-h bc2' oc={e => hidePopup(e)} >
       {panel === 'setup' ? <SetupPanel setPanel={setPanel} inputs={inputs} setInputs={setInputs} /> : null}
       {panel === 'running' ? <RunningPanel inputs={inputs} setPanel={setPanel} updateResults={updateResults} /> : null}
       {panel === 'results' ? <ResultsPanel setPanel={setPanel} inputs={inputs} results={results} updateResults={updateResults} /> : null}

@@ -16,6 +16,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
   useEffect(() => {
     const canavsContainer = document.querySelector('#canvas-container')
     setCanvasSize({ w: canavsContainer.clientWidth, h: canavsContainer.clientHeight })
+    if (!visuResults) generateScenario()
   }, [])
 
   const paramRanges = calcResultParamRanges(inputs)
@@ -108,27 +109,27 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
   }
 
   return (
-    <Flex f='FSVS' w='600px' cn='h100 rig bc-l2' p='20px 0 0 0'>
+    <Flex f='FSVS' w='600px' cn='h100 rig bc2 ct1' p='20px 0 0 0'>
 
-      <Flex f='FSVS rel w100' p='0 20px'>
+      <Flex f='FSVS rel w100' p='0 30px'>
         <Flex f='FS' cn='font-title'>Inputs</Flex>
 
-        <Center cn='w100 bc-d3' h='1px' m='10px 0' />
+        <Center cn='w100 bc2-3' h='1px' m='10px 0' />
 
-        <Grid gtc='140px 1fr 160px' gg='20px' cn='w100'>
+        <Flex f='FBS' cn='w100'>
 
-          <Flex f='FSV'>
+          <Flex f='FSV' w='140px'>
             <Center cn='font-title3'>Scenario</Center>
-            <Flex f='FSV' cn='rel' l='-18px' mt='5px'>
+            <Flex f='FSV' cn='rel' l='-18px' mt='10px'>
               <DropdownConst id='c-r' name='r' options={paramRanges.r} onChange={generateScenario} />
               <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} onChange={generateScenario} />
               <DropdownConst id='c-v' name='σ' options={paramRanges.σ} onChange={generateScenario} />
             </Flex>
           </Flex>
 
-          <Flex f='FSV'>
+          <Flex f='FSV' pr='20px'>
             <Center cn='font-title3' ml='30px'>Strategy</Center>
-            <Grid gtc='1fr 1.1fr' cn='w100' mt='5px'>
+            <Grid gtc='1fr 1.1fr' cn='w100' mt='10px'>
               <Flex f='FSV' cn='rel' l='0px'>
                 <DropdownConst id='c-type' name='Type' options={['xTrad', 'flexS', 'flexM']} onChange={runScenario} />
                 <DropdownConst id='c-opt' name='Optimal' options={['true', 'false']} onChange={runScenario} disabled={calcDisabled('opt')} />
@@ -140,77 +141,63 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
             </Grid>
           </Flex>
 
-          <Flex cn='w100' f='FSV'>
+          <Flex f='FSV'>
             <Center cn='font-title3 rig'>Generate</Center>
             <Flex
-              w='90px' f='FCV' mt='10px'
+              w='90px' f='FCV' mt='15px' h='90px'
               cn={`c-l1 font-small us-none bc1 ptr grow hoverGrow`}
               oc={generateScenario}
             >
               <Img src='generateScenario2.svg' w='80%' h='80%' cn='of-cont' />
-              {/* <Center cn='w100'>Generate</Center>
-              <Center cn='w100'>scenario</Center> */}
             </Flex>
           </Flex>
-
-        </Grid>
-
-        {/* <Center cn='w100 bc-d3' h='1px' m='20px 0 10px 0' /> */}
-
-
-
+        </Flex>
       </Flex>
 
-      {/* <Center cn='w100 bc-d3' h='1px' m='20px 0' /> */}
 
-      <Flex f='FSVS rel grow w100' p='0' mt='50px'>
-        <Flex f='FS' cn='font-title' ml='20px'>Simulation</Flex>
+      <Flex f='FSVS rel grow w100' p='0' mt='35px'>
 
-        <Center cn='bc-d3' h='1px' m='10px 0' w='calc(100% - 40px)' ml='20px' />
-
-        <Flex f='FS' cn='w100 rel' t='-5px' l='40px'>
-          <DropdownConst id='simu-speed' name='Speed' options={['slow', 'medium', 'fast']} w='120px' onChange={e => updatePlayspeed(e)} />
-
-
-          <SimulationBtn src={playing ? 'pause' : 'play'} w='40px' ml='20px' visuResults={visuResults}
-            updateFunc={() => {
-              if (currentStep === simulation.current.inputs.steps - 1) updateStep(() => 0)
-              setPlaying(prev => !prev)
-            }}
-          />
-
-          <SimulationBtn src='start' w='20px' ml='10px' visuResults={visuResults}
-            updateFunc={() => {
-              updateStep(() => 0)
-              setPlaying(false)
-            }}
-          />
-
-          <SimulationBtn src='backward' w='20px' ml='5px' visuResults={visuResults}
-            updateFunc={() => {
-              if (currentStep > 0) updateStep(prev => prev - 1)
-              setPlaying(false)
-            }}
-          />
-
-
-          <SimulationBtn src='forward' w='20px' ml='1px' visuResults={visuResults}
-            updateFunc={() => {
-              if (currentStep < simulation.current.inputs.steps - 1) updateStep(prev => prev + 1)
-              setPlaying(false)
-            }}
-          />
-
-          <SimulationBtn src='end' w='20px' ml='5px' visuResults={visuResults}
-            updateFunc={() => {
-              updateStep(() => simulation.current.inputs.steps - 1)
-              setPlaying(false)
-            }}
-          />
-
+        <Flex f='FSVS' cn='w100 rel' p='0 30px'>
+          <Flex f='FS' cn='font-title'>Simulation</Flex>
+          <Center cn='w100 bc2-3' h='1px' m='13px 0' />
+          <Flex f='FB' cn='w100 rel' t='-5px'>
+            <DropdownConst id='simu-speed' name='Speed' options={['slow', 'medium', 'fast']} lw='43px' w='130px' onChange={e => updatePlayspeed(e)} />
+            <Flex f='FS'>
+              <SimulationBtn src={playing ? 'pause' : 'play'} w='80px' ml='105px' visuResults={visuResults}
+                updateFunc={() => {
+                  if (currentStep === simulation.current.inputs.steps - 1) updateStep(() => 0)
+                  setPlaying(prev => !prev)
+                }}
+              />
+              <SimulationBtn src='start' w='40px' ml='10px' visuResults={visuResults}
+                updateFunc={() => {
+                  updateStep(() => 0)
+                  setPlaying(false)
+                }}
+              />
+              <SimulationBtn src='backward' w='40px' ml='10px' visuResults={visuResults}
+                updateFunc={() => {
+                  if (currentStep > 0) updateStep(prev => prev - 1)
+                  setPlaying(false)
+                }}
+              />
+              <SimulationBtn src='forward' w='40px' ml='10px' visuResults={visuResults}
+                updateFunc={() => {
+                  if (currentStep < simulation.current.inputs.steps - 1) updateStep(prev => prev + 1)
+                  setPlaying(false)
+                }}
+              />
+              <SimulationBtn src='end' w='40px' ml='10px' visuResults={visuResults}
+                updateFunc={() => {
+                  updateStep(() => simulation.current.inputs.steps - 1)
+                  setPlaying(false)
+                }}
+              />
+            </Flex>
+          </Flex>
         </Flex>
 
-        <Center id='canvas-container' bc='#fff' mt='5px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
+        <Center id='canvas-container' bc='#fff' mt='20px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
           <canvas id='visu-canvas' width={canvasSize.w} height={canvasSize.h} style={{ 'width': `${canvasSize.w}px`, 'height': `${canvasSize.h}px` }}></canvas>
         </Center>
 
@@ -228,7 +215,7 @@ function SimulationBtn({ updateFunc, src, visuResults, ...cssProps }) {
       h='25px' mt='5px'
       cn={`c-l1 font-small us-none bc1 ${visuResults ? 'ptr hoverGrow' : ''}`}
       o={visuResults ? '1' : '0.5'}
-      oc={visuResults ? updateFunc : () => {}}
+      oc={visuResults ? updateFunc : () => { }}
     >
       <Img src={`${src}.svg`} cn='of-cont' w='60%' h='60%' />
     </Center>

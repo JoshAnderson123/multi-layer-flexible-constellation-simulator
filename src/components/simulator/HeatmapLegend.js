@@ -11,7 +11,7 @@ export default function HeatmapLegend({ HMResults, viewValues, setViewValues, vi
     <>{
       HMResults.data?.length > 0 ?
 
-        <Flex f='FSV' w='250px' h='470px' bc='#fff' cn='bsh3 rel' ml='40px'>
+        <Flex f='FSV' w='250px' h='470px' cn='bsh3 rel bc2-3' ml='40px'>
 
           <Center cn='w100 font-grid-small c-d1' h='40px' mt='20px' >{HMResults.config.output}</Center>
 

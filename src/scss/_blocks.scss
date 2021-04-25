@@ -37,7 +37,7 @@
 }
 
 .font-result-data {
-  font: 400 1.1rem "Consolas", sans-serif;
+  font: 300 1.3rem "Consolas", sans-serif;
 }
 
 .font-dropdown {
@@ -53,7 +53,7 @@
 }
 
 .font-stat-title {
-  font: 300 1.3rem "Lato", sans-serif;
+  font: 400 1.4rem "Lato", sans-serif;
 }
 
 .font-stat-title-big {
@@ -61,7 +61,7 @@
 }
 
 .font-stat-small {
-  font: 300 1rem "Lato", sans-serif;
+  font: 300 1.1rem "Lato", sans-serif;
 }
 
 .font-stat-medium {
@@ -324,6 +324,42 @@
   background-color: $theme-color-1;
 }
 
+.c2 {
+  color: $theme-color-2;
+}
+
+.bc2 {
+  background-color: $theme-color-2;
+}
+
+.c2-2 {
+  color: $theme-color-2-2;
+}
+
+.bc2-2 {
+  background-color: $theme-color-2-2;
+}
+
+.c2-3 {
+  color: $theme-color-2-3;
+}
+
+.bc2-3 {
+  background-color: $theme-color-2-3;
+}
+
+.c2-4 {
+  color: $theme-color-2-4;
+}
+
+.bc2-4 {
+  background-color: $theme-color-2-4;
+}
+
+.ct1 {
+  color: $color-text1;
+}
+
 .c-w {
   color: $color-warning;
 }
@@ -381,15 +417,15 @@
 }
 
 .bor-field {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid $theme-color-2-3;
 }
 
 .bor-field-r {
-  border-right: 1px solid rgba(0, 0, 0, 0.3);
+  border-right: 1px solid $theme-color-2-3;
 }
 
 .bor-field-f {
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  border: 1px solid $theme-color-2-3;
 }
 
 /////// MISC ///////
@@ -400,6 +436,10 @@
 
 .bshbtn {
   box-shadow: 0px 7px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bshbtn2 {
+  box-shadow: 0px 25px 55px rgba(0, 0, 0, 0.3);
 }
 
 .bsh2 {

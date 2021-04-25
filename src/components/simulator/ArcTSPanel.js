@@ -31,12 +31,12 @@ export default function ArcTSPanel({ inputs, results, setPanel }) {
   }
 
   return (
-    <Flex f='FSV' w='100%' h='100%' bc='#ddd' cn='rel bsh3'>
+    <Flex f='FSV' w='100%' h='100%' cn='rel bc2 ct1'>
       <PanelTopBar setPanel={setPanel} />
       <Flex f='FB' cn='grow w100'>
 
         <Flex f='FSV' cn='bor-field-r rig rel h100' w='200px' p='20px' z='100'>
-          <Center f='FS' cn='font-title c-d1 w100'>Contants</Center>
+          <Center f='FS' cn='font-title w100'>Contants</Center>
           <Grid gtr='1fr 1fr 1fr' gg='0px' mt='20px' ml='20px' cn='rel w100'>
             <DropdownConst id='c-r' name='r' options={paramRanges.r} />
             <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} />
@@ -44,7 +44,7 @@ export default function ArcTSPanel({ inputs, results, setPanel }) {
           </Grid>
 
           <Center
-            p='7px' mt='40px'
+            p='15px' mt='40px'
             cn={`c-l1 font-small us-none bc1 ptr hoverGrow ta-center`}
             oc={() => updateParams()}
           >

@@ -66,37 +66,13 @@ export default function RunningPanel({ inputs, updateResults }) {
 
     else if (cur.scen === scenarios.current.length) { // Print results
 
-      // const opt = resultsFullTemp.current.xFlex[0]
-      // const T = resultsFullTemp.current.xTrad
-
       // console.clear()
       logNS('========================')
       logBig('Simultion Results')
       logNS('========================')
       logNS(`Elapsed Time: ${formatTime(calcElapsedTime())}`)
       logNS('---------------')
-      // logNS(`xTrad LCC: ${dollars(T.LCC)}`)
       logNS(resultsTemp.current)
-      // logNS(`xTrad LCC: ${T.LCC}`)
-      // logNS(`xFlexS ELCC: ${dollars(opt.S.ELCC)}`)
-      // logNS(`xFlexM ELCC: ${dollars(opt.M.ELCC)}`)
-      // logNS('---------------')
-      // logNS(`xFlexM/xTrad: ${((opt.M.ELCC / T.LCC) * 100).toFixed(2)}%`)
-      // logNS(`xFlexM/xFlexS: ${((opt.M.ELCC / opt.S.ELCC) * 100).toFixed(2)}%`)
-      // logNS('---------------')
-      // logNS(resultsFullTemp.current)
-      // logNS(resultsFullTemp.current.raw)
-
-      // console.log(new TextEncoder().encode(JSON.stringify(resultsFullTemp.current)).length)
-      // console.log(new TextEncoder().encode(JSON.stringify(resultsFullTemp.current.raw)).length)
-
-      // drawArchTradespace(
-      //   arcsParetoFam.current,
-      //   simulation.current.inputs,
-      //   T,
-      //   opt.S,
-      //   opt.M
-      // )
 
       updateResults(resultsTemp.current)
     }
@@ -140,18 +116,18 @@ export default function RunningPanel({ inputs, updateResults }) {
   }
 
   return (
-    <Center f='FSV' w='100%' h='100%' bc='#ddd' cn='rel bsh c-d1'>
+    <Center f='FSV' w='100%' h='100%' cn='rel ct1 bc2'>
       <Flex f='FSV'>
         <Center cn='font-title2'>
           Running Experiment
         </Center>
-        <Flex f='FS' mt='20px' w='300px' h='20px' bor='1px solid #333' cn='rel'>
+        <Flex f='FS' mt='20px' w='300px' h='20px' cn='rel bc2-2 bsh3'>
           <Center cn='abs h100 bc1' w={loadingbarLength()} />
         </Flex>
-        <Center cn='font-sim-preview c-d2' mt='20px' h='30px'>
+        <Center cn='font-sim-preview ct1' mt='20px' h='30px'>
           {printCurrentSim()}
         </Center>
-        <Center cn='font-sim-preview c-d2' mt='10px' h='30px'>
+        <Center cn='font-sim-preview ct1' mt='10px' h='30px'>
           {calcTimeRemaining()}
         </Center>
       </Flex>
