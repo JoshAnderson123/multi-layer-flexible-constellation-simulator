@@ -52,7 +52,7 @@ export default function RunningPanel({ inputs, updateResults }) {
       }
 
       // Run simulation
-      const result = simulation.current.runFlex2(arcsParetoFam.current, strats.current[cur.strat])
+      const result = simulation.current.runFlex(arcsParetoFam.current, strats.current[cur.strat])
       resultsTemp.current.flex.push({ ...result, ...scenarioData(scenarios.current[cur.scen]) }) // Append scenario info to the result
 
       // Update the strategy and scenario counter
