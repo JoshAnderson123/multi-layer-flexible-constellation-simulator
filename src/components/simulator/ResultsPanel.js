@@ -24,6 +24,8 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
 
   function displayResults() {
     if (!params || !results.xTrad) return null
+
+    
     const xTrad = findxTrad(params, results)
     const xFlexS = findxFlex(params, results, 'single')
     const xFlexM = findxFlex(params, results, 'multi')

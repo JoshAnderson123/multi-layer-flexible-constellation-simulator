@@ -1,6 +1,16 @@
-import {ln} from '../utilGeneral'
+/* Multi-Layer Flexible Constellation Simulator - Joshua Anderson 2021, Imperial College Lodon
+ * https://github.com/JoshAnderson123/multi-layer-flexible-constellation-simulator
+ * 
+ * --- costModel.js ---
+ * Calculates the life cycle costs for a constellation.
+ * Cost components are calculated using SSCM05, which are then used to derive
+ * Life Cycle Cost (LLC) components: Initial Development Costs (IDC), Production Costs (PC),
+ * Launch Costs (LC), and Onboard & Maintenance Costs (OC)
+*/
 
-// Ratio of Recurring to Non-Recurring Costs
+import { ln } from '../utilGeneral'
+
+// Ratio of Recurring to Non-Recurring Costs (SSCM05)
 const recurranceRatios = {
   'bus': 0.4,
   'str': 0.3,
@@ -17,43 +27,41 @@ const recurranceRatios = {
   'GSE': 0
 }
 
-const s = 0.85 // Assumed Learning Curve Slope
-export const b = 1 - (ln(1 / s) / ln(2))
+const s = 0.85 // Assumed Learning Curve Slope (Foreman 2019)
+export const b = 1 - (ln(1 / s) / ln(2)) // Learning curve exponent (Foreman 2019)
 
 /**
  * Calculates mass components for an architecture
- * @param {object} arch Architecture design
+ * @param {object} arc Architecture design
  * @return {object} Mass components for the architecture
  */
-export function calcMasses(arch) {
+export function calcMasses({ D, P, I }) {
 
-  const { D, P, I } = arch
-
-  // Calculate Dry Mass
-  const ISLMasses = { 'None': 1, 'Ring': 1.05, 'Mesh': 1.2 }
+  // Calculate Dry Mass (Foreman 2019, Starlink FFC 2016)
+  // Default values from Starlink are used as a benchmark to calculate the dry mass
+  const ISLMass = { 'None': 1, 'Ring': 1.05, 'Mesh': 1.2 } // Mass multiplication from ISLs (Stern 2021)
   const Pd = 2089     // Default Power, W
   const Dd = 3.5      // Default Antenna Diameter, m
   const md = 260      // Default Dry Mass, kg
   const dw = 0.95     // Proportion of total mass that is dry mass
   const mp_i = 0.3    // Proportion of dry mass thats Dry Instrument Mass, %
   const mp_b = 0.7    // Proportion of dry mass thats Dry Buss Mass, %
-  const misl = ISLMasses[I] // Increase in mass from ISL, %
-  const m = md * ((1 - mp_i) + (mp_i * (P / Pd))) * ((D / Dd) ** 2) * misl // Dry Mass
+  const m = md * ((1 - mp_i) + (mp_i * (P / Pd))) * ((D / Dd) ** 2) * ISLMass[I] // Dry Mass
   const tm = m / dw   // Total mass
   const mb = m * mp_b // Bus Dry Mass
 
-  // Calcualte Component Masses 
-  const m_str = m * 0.2
-  const m_thml = m * 0.04
-  const m_ADCS = m * 0.1
-  const m_EPS = m * 0.15
-  const m_TTC = m * 0.01
-  const m_CDH = m * 0.05
+  // Calcualte Component Masses (Adapted from GRACE and CYGNSS missions in Foreman 2019)
+  const m_str = m * 0.2   // Structural Mass
+  const m_thml = m * 0.04 // Thermal Control Mass
+  const m_ADCS = m * 0.1  // Altitude Determination and Control System (ADCS) Mass
+  const m_EPS = m * 0.15  // Electrical Power Supply (EPS) Mass
+  const m_TTC = m * 0.01  // Telemetry, Tracking, & Command (TTS) Mass
+  const m_CDH = m * 0.05  // Command & Data Handling (CD&H) Mass
 
   return {
     totalMass: tm,
     dryMass: m,
-    cm: {
+    cm: { // cm = component masses
       bus: mb,
       str: m_str,
       thml: m_thml,
@@ -67,30 +75,34 @@ export function calcMasses(arch) {
 
 
 /**
- * Calculates cost components for an architecture, using SSCM
- * @param {object} masses Masses for a given architcture
- * @param {number} numSats Number of satellites in constellation
- * @return {object} Cost components for the architecture
+ * Calculates cost components for an architecture from SSCM05
+ * @param {object} imInfCosts Intermediate SSCM costs, adjusted for inflation
+ * @param {number} numSats Number of satellites in architecture
+ * @return {object} SSCM cost components for the architecture
  */
 export function calcSSCMCosts(imInfCosts, numSats) {
 
-  // Calculate Learning Curve Multiplication Factor for Recurring Costs
+  // Calculate Learning Curve Multiplication Factor for Recurring Costs (Foreman 2019)
   const L = numSats ** b
 
   // Compile Recurring and Non-Recurring Costs
-  const costs_r_nr = Object.entries(imInfCosts).reduce((acc, [key, val]) => ({
+  const costs = Object.entries(imInfCosts).reduce((acc, [costComponent, imInfCost]) => ({
     ...acc,
-    [key]: {
-      'r': val * recurranceRatios[key] * L,
-      'nr': val * (1 - recurranceRatios[key])
+    [costComponent]: {
+      'r': imInfCost * recurranceRatios[costComponent] * L,   // Recurring costs
+      'nr': imInfCost * (1 - recurranceRatios[costComponent]) // Non-recurring costs
     }
   }), {});
 
-  return costs_r_nr
+  return costs
 }
 
 
-// Calculate Intermediate Cost Values using CERs
+/**
+ * Calculates Intermediate SSCM Cost Values using CERs in SSCM05 (Foreman 2019)
+ * @param {object} cm Component masses of architecture
+ * @return {object} Intermediate SSCM cost components for the architecture
+ */
 function calcImCosts(cm) {
   return {
     'bus': 1064 + 35.5 * ((cm.bus) ** 1.261),    // Spacecraft Bus
@@ -110,6 +122,11 @@ function calcImCosts(cm) {
 }
 
 
+/**
+ * Calculates Intermediate SSCM Cost Values, adjusted for inflation from 2010 to 2021
+ * @param {object} masses Mass information for architecture
+ * @return {object} Intermediate SSCM cost components for the architecture, adjusted for inflation 
+ */
 export function calcImInfCosts(masses) {
 
   // Calculate Intermediate Cost Values using CERs
@@ -117,40 +134,47 @@ export function calcImInfCosts(masses) {
 
   // Adjust for inflation
   const ir2010_2021 = 1.231 // Inflation rate from 2010 to 2021
-  const imInf = Object.keys(im).reduce((acc, key) => {
-    acc[key] = im[key] * ir2010_2021
-    return acc
+
+  const imInf = Object.keys(im).reduce((costs, costComponent) => {
+    costs[costComponent] = im[costComponent] * ir2010_2021
+    return costs
   }, {})
 
   return imInf
 }
 
 
-export function calcRecCosts(imInf) {
+/**
+ * Calculates recurring costs of an architecture
+ * Pre-computing these costs for each family saves computation
+ * @param {object} imInfCosts Intermediate SSCM costs, adjusted for inflation
+ * @return {object} Recurring costs for an architecture
+ */
+export function calcRecCosts(imInfCosts) {
 
-  return Object.keys(imInf).reduce((acc, key) => {
-    acc[key] = imInf[key] * recurranceRatios[key]
-    return acc
+  return Object.keys(imInfCosts).reduce((costs, costComponent) => {
+    costs[costComponent] = imInfCosts[costComponent] * recurranceRatios[costComponent]
+    return costs
   }, {})
-
 }
 
 
 /**
  * Calculates Lifecycle Cost components for a given architecture
+ * @param {object} imInfCosts Intermediate SSCM costs, adjusted for inflation
  * @param {object} masses Masses for a given architcture
  * @param {number} numSats Number of satellites in constellation
  * @return {object} Lifecycle Cost components
  */
-export function calcLCCComponents(imInfCosts, masses, n) {
+export function calcLCCComponents(imInfCosts, masses, numSats) {
 
-  const SSCMCosts = calcSSCMCosts(imInfCosts, n)
+  const SSCMCosts = calcSSCMCosts(imInfCosts, numSats)
 
-  const LC = calcLaunchCost(masses.totalMass, n) // Launch Costs
-  const PC = calcProdCost(SSCMCosts)             // Production Costs
-  const IDC = calcIDCost(SSCMCosts)              // Initial Development Costs
-  const OC = calcOMCost(SSCMCosts)               // Operations & Maintainence Costs
-  const RC = calcReconfigCost(SSCMCosts)         // Reconfiguration Costs
+  const LC = calcLaunchCost(masses.totalMass, numSats) // Launch Costs
+  const PC = calcProdCost(SSCMCosts)                   // Production Costs
+  const IDC = calcIDCost(SSCMCosts)                    // Initial Development Costs
+  const OC = calcOMCost(SSCMCosts)                     // Operations & Maintainence Costs
+  const RC = calcReconfigCost(SSCMCosts)               // Reconfiguration Costs
 
   return { LC, PC, IDC, OC, RC }
 }

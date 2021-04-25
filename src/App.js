@@ -14,7 +14,7 @@ function App() {
   const [inputs, setInputs] = useState(defaultInputs)
   const [results, setResults] = useState({})
 
-  function updateResults(res, ipt) {
+  function updateResults(res, ipt) { // Error - the inputs get loaded after the results, causing default inputs to be used
     setResults(res)
     if (ipt) setInputs(ipt)
     setPanel('results')

@@ -440,9 +440,9 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     drawEvolution(`#${layerColors[0]}`, 'NL', calcX(0), calcY(0))
 
     for (let d = 1; d <= simulation.inputs.steps; d++) {
-      if (results.evolutions[d]?.evolution) {
+      if (results.evolutions[d]?.type) {
         const color = `#${layerColors[results.evolutions[d].layer]}`
-        drawEvolution(color, results.evolutions[d].evolution, calcX(STEP * d), calcY(results.capacity[d]))
+        drawEvolution(color, results.evolutions[d].type, calcX(STEP * d), calcY(results.capacity[d]))
       }
     }
   }

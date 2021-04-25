@@ -31,7 +31,9 @@ export function createSimulation(inputs, arcs) {
   simulation.runTrad = tradespace => runTrad(tradespace)
   simulation.runTradVisual = xTrad => runTradVisual(xTrad)
   simulation.runFlex = (tradespace, flexStratInputs) => runFlex(tradespace, flexStratInputs)
+  simulation.runFlex2 = (tradespace, flexStratInputs) => runFlex2(tradespace, flexStratInputs)
   simulation.runFlexVisual = (family, flexStratInputs) => runFlexVisual(family, flexStratInputs)
+  simulation.runFlexVisual2 = (family, flexStratInputs) => runFlexVisual2(family, flexStratInputs)
   simulation.maxMinDemand = () => maxMinDemand(scenarios)
   simulation.expectedDemand = () => detFinal
   simulation.L = L
@@ -120,7 +122,7 @@ export function createSimulation(inputs, arcs) {
 
       for (let demand of scenarios) { // Run through every demand scenario
 
-        let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+        let layers = [calcFirstArc(start, family.cfgs).id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
         let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
         let recs = [] // Initialise the log of reconfigurations
 
@@ -165,6 +167,83 @@ export function createSimulation(inputs, arcs) {
   }
 
 
+  function runFlex2(tradespace, flexStratInputs) {
+
+    const { J, Lm } = flexStratInputs // Extract flexible strategy inputs
+    const tsFlexMulti = [] // Initialsie tradespace of families using the multi-layered flexible strategy
+    const dt = T / steps // Calculate Time step (years)
+
+    for (let family of tradespace) { // For each family in the tradespace
+
+      if (maxCapacityOf(family) < capMax) continue // Discard a family if it never reaches capMax
+
+      const OC = {} // Initialise Ongoing & Mantenance cost cache
+      function combinedOC(layers) { // Setup optimised combined OC function for this family
+        const n = calcTotalN(layers, family)
+        if (n in OC) { return OC[n] }
+        if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
+        L[n] = n ** b
+        OC[n] = family.recCosts['LOOS'] * L[n] * dt
+        return OC[n]
+      }
+
+      const evolutions = calcEvolutions(J, family, Lm)
+      const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
+      let curEvl = 0 // Current evolution
+
+      let ELCC = 0 // Initialise expected LCC
+      let avgR = 0 // Initialise average number of reconfigurations
+      let avgN = 0 // Initialise average number of newLayers
+
+      for (let demand of scenarios) { // Run through every demand scenario
+
+        let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+        let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
+
+        console.log('------------')
+
+        for (let t = 1; t < demand.length; t++) { // Run through the scenario
+
+          let LCCstep = 0 // Initialise LCC for this step
+          const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+
+          if (totalCap < capMax && testScenario[t] > totalCap) { // If constellation should evolve
+            curEvl++
+            // if (curEvl > evolutions.length - 1) console.log('woops', evolutions, family, flexStratInputs)
+            const evl = evolutions[curEvl]
+            if (evl) {
+              if (evl.type === 'NL') {
+                LCCstep += evolutionNLCosts2(family, evl.id, layers, maxReconsPerSat)
+                layers.push(evl.id)
+                console.log('NL', layers)
+                avgN++
+              } else {
+                LCCstep += evolutionReconMultiCosts(family, evl.from, evl.to, layers, maxReconsPerSat)
+                layers[evl.layer] = evl.to
+                console.log('recon', layers)
+                avgR++
+              }
+            } else {
+              if (curEvl === evolutions.length) console.log(Lm, totalCap, layers, evolutions, family.cfgs)
+            }
+          }
+
+          LCCstep += combinedOC(layers)
+          LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
+        }
+        ELCC += calcLCC(LCCarr, discountArr) // Discount the LCCs at every step, then sum them together, and add to the ELCC counter
+      }
+
+      ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
+      avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
+      avgN = round(avgN / scenarios.length, 4)
+      tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, J }) // Add this family and its ELCC to the final list
+    }
+
+    const xFlex = tsFlexMulti.reduce((lowest, fam) => fam.ELCC < lowest.ELCC ? fam : lowest, { ELCC: Infinity })
+    return formatxFlex(xFlex)
+  }
+
 
   function runFlexVisual(family, flexStratInputs) {
 
@@ -194,7 +273,7 @@ export function createSimulation(inputs, arcs) {
       return OC[n]
     }
 
-    let layers = [startingArc(family)] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+    let layers = [calcFirstArc(start, family.cfgs).id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
     let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
     let recs = [] // Initialise the log of reconfigurations
 
@@ -213,6 +292,7 @@ export function createSimulation(inputs, arcs) {
           layers.push(nl) // Add new layer to the constellation
           LCCstep += evolutionNLCosts(family, layers, maxReconsPerSat) // Add NL evolution cost to LCC
           results.evolutions.push({ evolution: 'NL', layer: layers.length - 1 })
+          console.log(nl)
         }
         // If an existing layer should be reconfigured (Recon evolution)
         else {
@@ -221,7 +301,74 @@ export function createSimulation(inputs, arcs) {
           layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
           results.evolutions.push({ evolution: 'recon', layer: bestRecon.a })
           recs.push(bestRecon.a)
+          console.log(bestRecon.b)
         }
+      } else {
+        results.evolutions.push({})
+      }
+
+      LCCstep += combinedOC(layers)
+      LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
+    }
+
+    results.cost = discountLCCArr(LCCarr, discountArr)
+
+    return results
+  }
+
+
+  function runFlexVisual2(family, flexStratInputs) {
+
+    const { J, Lm } = flexStratInputs // Extract flexible strategy inputs
+    const dt = T / steps // Calculate Time step (years)
+
+    const evolutions = calcEvolutions(J, family, Lm)
+    const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
+    let curEvl = 0 // Current evolution
+    // const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
+
+    const results = {
+      demand: testScenario,
+      capacity: [],
+      cost: [],
+      evolutions: [],
+      layers: [],
+      family,
+      strat: { J, Lm },
+      maxReconsPerSat
+    }
+
+    const OC = {} // Initialise Ongoing & Mantenance cost cache
+    function combinedOC(layers) { // Setup optimised combined OC function for this family
+      const n = calcTotalN(layers, family)
+      if (n in OC) { return OC[n] }
+      if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
+      L[n] = n ** b
+      OC[n] = family.recCosts['LOOS'] * L[n] * dt
+      return OC[n]
+    }
+
+    let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+    let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
+
+    for (let t = 1; t < testScenario.length; t++) { // Run through the scenario
+
+      let LCCstep = 0 // Initialise LCC for this step
+      const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+      results.capacity.push(totalCap) // Add current capacity to capacity array
+      results.layers.push(layers.map(layer => ({ e: family.cfgs[layer].e, a: family.cfgs[layer].a }))) // Add current constellation (layers) configuration to layers array
+
+      if (totalCap < capMax && testScenario[t] > totalCap) { // If constellation should evolve
+        curEvl++
+        const evl = evolutions[curEvl]
+        if (evl.type === 'NL') {
+          LCCstep += evolutionNLCosts2(family, evl.id, layers, maxReconsPerSat)
+          layers.push(evl.id)
+        } else {
+          LCCstep += evolutionReconMultiCosts(family, evl.from, evl.to, layers, maxReconsPerSat)
+          layers[evl.layer] = evl.to
+        }
+        results.evolutions.push(evl)
       } else {
         results.evolutions.push({})
       }
@@ -246,33 +393,107 @@ export function createSimulation(inputs, arcs) {
   }
 
 
-  function startingArc(family) {
-    let a = 0
-    while (family.cfgs[a].cap < start) a++
-    return a
-  }
-
-
   function newestLayer(arcs) {
     return arcs[arcs.length - 1]
   }
 
 
-  function calcExpTotalRecons(J, family) { // Calculate the maximum expected reconfigurations in a demand scenario
-    const firstArc = calcFirstArc(start, family.cfgs)
+  function calcExpTotalRecons(J, family, Lm) { // Calculate the maximum expected reconfigurations in a demand scenario
+    const f = calcFirstArc(start, family.cfgs)
 
-    let count = 0, a = firstArc.id
-    while (family.cfgs[a].cap < capMax) {
-      for (let b = a + 1; b < family.cfgs.length; b++) {
-        if (family.cfgs[b].cap > family.cfgs[a].cap * J) { count++; a = b; break; }
-      }
+    let count = 0
+    for (let a = f.id + 1, cap = f.cap; a < family.cfgs.length - 1; a++) {
+      if (cap * J > capMax) { count++; break; }
+      if (family.cfgs[a].cap >= cap * J) { count++; cap = family.cfgs[a].cap; }
     }
+
+
+
     return count
+
+    // let count = 0, a = firstArc.id
+    // while (family.cfgs[a].cap < capMax) {
+    //   for (let b = a + 1; b < family.cfgs.length; b++) {
+    //     // console.log(`J = ${J}:`, a, b, family.cfgs[b].cap / family.cfgs[a].cap)
+    //     if (family.cfgs[b].cap > family.cfgs[a].cap * J) { count++; a = b; break; }
+    //   }
+    //   // break; // If there isn't an architecture that is J bigger than current (The final reconfig has been reached)
+    // }
+    // return count
 
     // const maxRecons = family.cfgs.length - (firstArc.id + 1)
     // if (J === 1) return maxRecons // If J = 1, ln(J) will return an error. Return the max number of reconfigs (the number of configs in a family)
     // const expTemp = ln(capMax / firstArc.cap) / ln(J) // Calculate expected recons based on maxCap (Derivation based on exponential growth model) 
     // return Math.min(expTemp, maxRecons)  // Don't allow for more reconfigs then there are configurations available in a family
+  }
+
+
+  function calcEvolutions(J, fam, Lm) { // Calculate the maximum expected reconfigurations in a demand scenario
+
+    const f = calcFirstArc(start, fam.cfgs)
+    const layers = [f.id]
+    const evolutions = [{ type: 'init', layer: 0, id: f.id }]
+    let totalCap = calcTC()
+    let maxRecons = null
+
+    function evolve() {
+      if (layers.length < Lm) addNewLayer()
+      else reconfigure()
+      totalCap = calcTC()
+    }
+
+    function addNewLayer() {
+      const reqJ = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
+      let nl = 0
+      for (let i = nl; i < fam.cfgs.length; i++) {
+        nl = i
+        if (sameAltitude(fam.cfgs, layers, nl)) continue
+        if (fam.cfgs[nl].cap > reqJ) break
+      }
+      layers.push(nl)
+      evolutions.push({ type: 'NL', layer: layers.length - 1, id: nl })
+    }
+
+    function reconfigure() {
+      const reqJ = calcRequiredCap(totalCap, J)
+      let optRecon = { cap: Infinity }
+      for (let lid = 0; lid < layers.length; lid++) {
+
+        let aid = layers[lid], bid = layers[lid] + 1
+        for (let i = bid; i < fam.cfgs.length; i++) {
+          bid = i
+          if (sameAltitude(fam.cfgs, layers, i) || tooManyRecons(lid)) continue
+          if (fam.cfgs[bid].cap - fam.cfgs[aid].cap > reqJ) break
+        }
+        optRecon = fam.cfgs[bid].cap < optRecon.cap ? { l: lid, a: aid, b: bid, cap: fam.cfgs[bid].cap } : optRecon
+      }
+      layers[optRecon.l] = optRecon.b
+      evolutions.push({ type: 'recon', layer: optRecon.l, from: optRecon.a, to: optRecon.b })
+    }
+
+    function calcTC() {
+      return layers.reduce((tc, layer) => tc + fam.cfgs[layer].cap, 0)
+    }
+
+    function tooManyRecons(lid) {
+      maxRecons = maxRecons !== null ? maxRecons : calcMaxRecons()
+      return reconsIn(lid) === maxRecons
+    }
+
+    function reconsIn(lid) {
+      return evolutions.reduce((recs, evl) => evl.layer === lid ? recs + 1 : recs, 0)
+    }
+
+    function calcMaxRecons() {
+      const maxTotalRecons = ln(capMax / totalCap) / ln(J)
+      maxRecons = ceil(maxTotalRecons / Lm)
+    }
+
+    while (totalCap < capMax) {
+      evolve()
+    }
+
+    return evolutions
   }
 
 
@@ -333,7 +554,6 @@ export function createSimulation(inputs, arcs) {
   function chooseEvolutionNewLayer(family, layers, totalCap, J) { // Return a new constellation ID that fits the capacity jump criteria
 
     const reqCapJump = calcRequiredCap(totalCap, J) // The required jump in capacity for the next evolution. E.g. 30,000 more channels are required to satisfy capJump
-
     let nl = 0
     while (betterEvolution(family, nl, family.cfgs[nl].cap < reqCapJump || sameAltitude(family.cfgs, layers, nl))) nl++
     return nl
@@ -381,6 +601,26 @@ export function createSimulation(inputs, arcs) {
     const newArch = family.cfgs[newestLayer(arcs)]
     const newSats = newArch.n
     const newTotalN = calcTotalN(arcs, family) // Total number of satellites after new layer
+
+    const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
+    const LC = calcLaunchCost(family.m.totalMass, newSats)
+    const RC = maxReconsPerSat * PC * inputs.reconCost
+
+    return PC + LC + RC
+  }
+
+
+  /**
+ * Calculates the cost to evolve between two architectures 
+ * @param {object} family Family of architectures
+ * @param {object} a Curent architecture ID
+ * @param {object} b ID of next arhitecture to evolve to
+ * @return {number} Cost ($M)
+ */
+  function evolutionNLCosts2(family, id, layers, maxReconsPerSat) {
+    const newArch = family.cfgs[id]
+    const newSats = newArch.n
+    const newTotalN = calcTotalN([...layers, id], family) // Total number of satellites after new layer
 
     const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
     const LC = calcLaunchCost(family.m.totalMass, newSats)
@@ -464,5 +704,14 @@ export function createSimulation(inputs, arcs) {
       if (cfgs[layer].a === cfgs[nl].a) return true
     }
     return false
+  }
+
+  function calcMaxRecons(evolutions, Lm) {
+    const recons = evolutions.reduce((recs, evl) => {
+      if (evl.type === 'recon') recs[evl.layer] += 1
+      return recs
+    }, new Array(Lm).fill(0))
+
+    return max(...recons)
   }
 }

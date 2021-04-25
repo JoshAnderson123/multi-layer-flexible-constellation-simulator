@@ -66,14 +66,14 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
         const flexS = (optimum === 'true') ? findxFlex(scen, results, 'single') : findFlex(scen, strat, results, 'single')
         const fixedParams = { D: flexS.D.toString(), P: flexS.P.toString(), f: flexS.f.toString(), I: flexS.I.toString() }
         const family = generateArchitectures(fixedParams, flexParams)[0]
-        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexS.J, Lm: flexS.Lm }))
+        updateVisuResults(simulation.current.runFlexVisual2(family, { J: flexS.J, Lm: flexS.Lm }))
       }
 
       if (stratType === 'flexM') {
         const flexM = (optimum === 'true') ? findxFlex(scen, results, 'multi') : findFlex(scen, strat, results, 'multi')
         const fixedParams = { D: flexM.D.toString(), P: flexM.P.toString(), f: flexM.f.toString(), I: flexM.I.toString() }
         const family = generateArchitectures(fixedParams, flexParams)[0]
-        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexM.J, Lm: flexM.Lm }))
+        updateVisuResults(simulation.current.runFlexVisual2(family, { J: flexM.J, Lm: flexM.Lm }))
       }
     }
 
