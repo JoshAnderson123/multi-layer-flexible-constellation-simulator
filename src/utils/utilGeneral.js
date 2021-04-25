@@ -585,3 +585,32 @@ export function calcFirstArc(start, cfgs) {
   }
   return { id: cfgs.length - 1, cap: cfgs[cfgs.length - 1].cap }
 }
+
+export function fillArr(len, val) {
+  const arr = []
+  arr.length = len
+  arr.fill(val);
+  return arr// new Array(len).fill(val)
+}
+
+export function copyFam(fam, cfgs) {
+  return {
+    D: fam.D, P: fam.P, I: fam.I, f: fam.f, prodCostSrc: fam.prodCostSrc,
+    imInfCosts: {...fam.imInfCosts},
+    m: {
+      dryMass: fam.m.dryMass,
+      totalMass: fam.m.totalMass,
+      cm: {...fam.m.cm}
+    },
+    recCosts: {...fam.recCosts},
+    cfgs
+  }
+}
+
+export function copyConfig(config, LCC) {
+  return {
+    a: config.a, e: config.e, n: config.n, cap: config.cap,
+    costs: {...config.costs},
+    LCC
+  }
+}

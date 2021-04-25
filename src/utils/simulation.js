@@ -1,7 +1,7 @@
 import { stochasticScenarios, deterministicScenario } from './models/demandModel'
 import { calcLaunchCost } from './models/costModel'
 import { maxMinDemand } from './models/demandModel'
-import { calcFirstArc, ceil, count, deepCopy, formatxFlex, ln, max, round } from './utilGeneral'
+import { calcFirstArc, ceil, copyConfig, copyFam, count, deepCopy, fillArr, formatxFlex, ln, max, round } from './utilGeneral'
 import { b } from './models/costModel'
 
 
@@ -48,18 +48,24 @@ export function createSimulation(inputs, arcs) {
  * @param {object} inputs Simulation input parameters
  * @return {object} Tradespace with LCC for each architecture 
  */
-  function runTrad(ts) {
-    const tsf = deepCopy(ts)
-    const dt = T / steps // # Steps / year
+  function runTrad(ts) { // Don't use deepCopy (Currently an error)
+    
+    const tsf = []
+    const dt = T / steps // # Steps / year
 
-    for (let family of tsf) {   // For each fam in the ts
-      for (let config of family.cfgs) {   // For each configuration in the fam
-        let LCCarr = [config.costs.IDC + config.costs.PC + config.costs.LC] // Initial costs
-        for (let t = 1; t < steps + 1; t++) LCCarr.push(config.costs.OC * dt) // Each step
-        config.LCC = calcLCC(LCCarr, discountArr) // NPV
+    for (let family of ts) {   // For each fam in the ts
+      const newCfgs = []
+      for (let config of family.cfgs) {   // For each configuration in the fam
+        let LCCarr = [config.costs.IDC + config.costs.PC + config.costs.LC] // Initial costs
+        const OC = config.costs.OC * dt
+        LCCarr = LCCarr.concat(fillArr(steps, OC))
+        // for (let t = 1; t < steps + 1; t++) LCCarr.push(OC)
+        newCfgs.push(copyConfig(config, calcLCC(LCCarr, discountArr)))
       }
-      family.cfgs.sort((a, b) => a.LCC - b.LCC)
+      newCfgs.sort((a, b) => a.LCC - b.LCC)
+      tsf.push(copyFam(family, newCfgs))
     }
+
     return tsf
   }
 
@@ -178,8 +184,7 @@ export function createSimulation(inputs, arcs) {
       if (maxCapacityOf(family) < capMax) continue // Discard a family if it never reaches capMax
 
       const OC = {} // Initialise Ongoing & Mantenance cost cache
-      function combinedOC(layers) { // Setup optimised combined OC function for this family
-        const n = calcTotalN(layers, family)
+      function combinedOC(n) { // Setup optimised combined OC function for this family
         if (n in OC) { return OC[n] }
         if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
         L[n] = n ** b
@@ -189,7 +194,6 @@ export function createSimulation(inputs, arcs) {
 
       const evolutions = calcEvolutions(J, family, Lm)
       const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
-      let curEvl = 0 // Current evolution
 
       let ELCC = 0 // Initialise expected LCC
       let avgR = 0 // Initialise average number of reconfigurations
@@ -197,44 +201,53 @@ export function createSimulation(inputs, arcs) {
 
       for (let demand of scenarios) { // Run through every demand scenario
 
+        let curEvl = 0 // Current evolution
         let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
-        let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
-
-        console.log('------------')
+        // let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
+        let LCC = startCosts(family, layers, maxReconsPerSat) // Initialise the LCC array
+        let totalN = calcTotalN(layers, family)
+        let prevEvlT = 1
+        let totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
 
         for (let t = 1; t < demand.length; t++) { // Run through the scenario
 
-          let LCCstep = 0 // Initialise LCC for this step
-          const totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+          if (demand[t] > totalCap && totalCap < capMax) { // If constellation should evolve
 
-          if (totalCap < capMax && testScenario[t] > totalCap) { // If constellation should evolve
+            const OC = combinedOC(totalN)
+
+            // LCCarr = LCCarr.concat(fillArr(t - prevEvlT, OC ))
+            for(let i = prevEvlT; i < t; i++) LCC += OC * discountArr[i]
+
             curEvl++
-            // if (curEvl > evolutions.length - 1) console.log('woops', evolutions, family, flexStratInputs)
             const evl = evolutions[curEvl]
-            if (evl) {
-              if (evl.type === 'NL') {
-                LCCstep += evolutionNLCosts2(family, evl.id, layers, maxReconsPerSat)
-                layers.push(evl.id)
-                console.log('NL', layers)
-                avgN++
-              } else {
-                LCCstep += evolutionReconMultiCosts(family, evl.from, evl.to, layers, maxReconsPerSat)
-                layers[evl.layer] = evl.to
-                console.log('recon', layers)
-                avgR++
-              }
+            let evlCost
+            if (evl.type === 'NL') {
+              evlCost = evolutionNLCosts2(family, evl.id, layers, maxReconsPerSat)
+              layers.push(evl.id)
+              avgN++
             } else {
-              if (curEvl === evolutions.length) console.log(Lm, totalCap, layers, evolutions, family.cfgs)
+              evlCost = evolutionReconMultiCosts(family, evl.from, evl.to, layers, maxReconsPerSat)
+              layers[evl.layer] = evl.to
+              avgR++
             }
-          }
+            // LCCarr.push(evlCost + OC)
+            LCC += (evlCost + OC) * discountArr[t]
 
-          LCCstep += combinedOC(layers)
-          LCCarr.push(LCCstep) // Add the costs of this step to the LCC array
+            totalCap = calcTotalCap(layers, family)
+            totalN = calcTotalN(layers, family)
+            prevEvlT = t + 1
+          }
         }
-        ELCC += calcLCC(LCCarr, discountArr) // Discount the LCCs at every step, then sum them together, and add to the ELCC counter
+        
+        // LCCarr = LCCarr.concat(fillArr(steps + 1 - prevEvlT, combinedOC(totalN)))
+        const OC = combinedOC(totalN)
+        for(let i = prevEvlT; i < steps + 1; i++) LCC += OC * discountArr[i]
+        // ELCC += calcLCC(LCCarr, discountArr) // Discount the LCCs at every step, then sum them together, and add to the ELCC counter
+        ELCC += LCC
       }
 
       ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
+      
       avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
       avgN = round(avgN / scenarios.length, 4)
       tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, J }) // Add this family and its ELCC to the final list
@@ -292,7 +305,6 @@ export function createSimulation(inputs, arcs) {
           layers.push(nl) // Add new layer to the constellation
           LCCstep += evolutionNLCosts(family, layers, maxReconsPerSat) // Add NL evolution cost to LCC
           results.evolutions.push({ evolution: 'NL', layer: layers.length - 1 })
-          console.log(nl)
         }
         // If an existing layer should be reconfigured (Recon evolution)
         else {
@@ -301,7 +313,6 @@ export function createSimulation(inputs, arcs) {
           layers[bestRecon.a] = bestRecon.b // Reconfigure the chosen layer in the constellation
           results.evolutions.push({ evolution: 'recon', layer: bestRecon.a })
           recs.push(bestRecon.a)
-          console.log(bestRecon.b)
         }
       } else {
         results.evolutions.push({})

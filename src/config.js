@@ -21,7 +21,7 @@ export const defaultInputs_2 = {
   }
 }
 
-export const defaultInputs = {
+export const defaultInputs = { // OG
   scenario: {
     r: '0|0.1|0.5',  // '0.1|0.1|0.6'
     rec: '0.2', // '0.2,0.5
@@ -37,6 +37,27 @@ export const defaultInputs = {
     P: '200|400|2200',
     f: '15,50',
     I: 'None,Mesh,Ring',
+    a: '400|50|1600',
+    e: '15|15|60',
+  }
+}
+
+export const defaultInputs_SC = { // Single case
+  scenario: {
+    r: '0',  // '0.1|0.1|0.6'
+    rec: '0.2', // '0.2,0.5
+    σ: '0.2', // '0.1|0.1|0.5'
+    S: '2'
+  },
+  strategy: {
+    J: '1.5', // 1.5|0.5|5
+    Lm: '2', // 2|1|5
+  },
+  architecture: {
+    D: '2',
+    P: '200',
+    f: '15',
+    I: 'Mesh',
     a: '400|50|1600',
     e: '15|15|60',
   }
