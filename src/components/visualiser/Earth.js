@@ -32,8 +32,6 @@ export function Earth({...props}) {
 
 export function EarthLoading({...props}) {
 
-  console.log('Earth loading')
-
   return (
     <mesh {...props}>
       <sphereBufferGeometry attach="geometry" args={[EARTH_RADIUS / SCALE_FACTOR, 80, 80]} />
