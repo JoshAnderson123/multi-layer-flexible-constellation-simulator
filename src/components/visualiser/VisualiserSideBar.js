@@ -28,6 +28,9 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
       r: parseConst('#c-r'),
       rec: parseConst('#c-rec'),
       σ: parseConst('#c-v'),
+      μ: parseFloat(inputs.scenario.μ),
+      start: parseFloat(inputs.scenario.start),
+      capMax: parseFloat(inputs.scenario.capMax),
       S: 100,
     }
   }

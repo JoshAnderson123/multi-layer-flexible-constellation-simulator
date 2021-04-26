@@ -74,7 +74,7 @@ export function calcCapacity({ D, f, P, e, a, I }, numSats) {
 
   const Chs = (Z / (2 * K)) * (Bsat / (BT + Bg)) * (((Rd * Tf) - F) / (n + (Rd * Tg))) // Number of channels per satellite
 
-  const scaleFactor = 1e-1 // The number of channels is arbritrary. This scale factor converts the range into one confirmed by Bosomworth 2019
+  const scaleFactor = 0.5e-1 // The number of channels is arbritrary. This scale factor converts the range into one confirmed by Bosomworth 2019
   const maxChs = (Chs * numSats) * scaleFactor // The maximum number of total channels available at any given time 
 
   const Us = { // System utilisation. 1 = full usage all the time. 0 = no usage. ISLs allow more satellites to be utilised at any given time.

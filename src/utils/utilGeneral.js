@@ -45,7 +45,7 @@ export function formatxFlex(x) {
   return {
     ELCC: round(x.ELCC, 2),
     D: x.D, P: x.P, f: x.f, I: x.I,
-    J: x.J, Lm: x.Lm, 
+    J: x.J, Lm: x.Lm,
     avgN: x.avgN, avgR: x.avgR
   }
 }
@@ -144,14 +144,26 @@ export function generateTSB(inputs) {
       r: inputs.scenario.r,
       rec: inputs.scenario.rec,
       σ: inputs.scenario.σ,
-      S: inputs.scenario.S
+      S: inputs.scenario.S,
+      μ: inputs.scenario.μ,
+      start: inputs.scenario.start,
+      capMax: inputs.scenario.capMax,
     }
   }
 }
 
 export function simulationInputs(scen) {
 
-  return { ...defaultSim, r: scen.r, reconCost: scen.rec, σ: scen.σ, numScenarios: scen.S }
+  return {
+    ...defaultSim,
+    r: scen.r,
+    reconCost: scen.rec,
+    σ: scen.σ,
+    numScenarios: scen.S,
+    μ: scen.μ,
+    start: scen.start,
+    capMax: scen.capMax,
+  }
 }
 
 export function formatTime(ms) {
@@ -579,9 +591,9 @@ export function count(arr, v) {
   return arr.reduce((t, c) => c === v ? t + 1 : t, 0)
 }
 
-export function calcFirstArc(start, cfgs) {
+export function calcFirstArc(start, cfgs, J) {
   for (let i = 0; i < cfgs.length; i++) {
-    if (cfgs[i].cap > start) return { id: i, cap: cfgs[i].cap }
+    if (cfgs[i].cap > start * J) return { id: i, cap: cfgs[i].cap }
   }
   return { id: cfgs.length - 1, cap: cfgs[cfgs.length - 1].cap }
 }
@@ -596,13 +608,13 @@ export function fillArr(len, val) {
 export function copyFam(fam, cfgs) {
   return {
     D: fam.D, P: fam.P, I: fam.I, f: fam.f, prodCostSrc: fam.prodCostSrc,
-    imInfCosts: {...fam.imInfCosts},
+    imInfCosts: { ...fam.imInfCosts },
     m: {
       dryMass: fam.m.dryMass,
       totalMass: fam.m.totalMass,
-      cm: {...fam.m.cm}
+      cm: { ...fam.m.cm }
     },
-    recCosts: {...fam.recCosts},
+    recCosts: { ...fam.recCosts },
     cfgs
   }
 }
@@ -610,7 +622,7 @@ export function copyFam(fam, cfgs) {
 export function copyConfig(config, LCC) {
   return {
     a: config.a, e: config.e, n: config.n, cap: config.cap,
-    costs: {...config.costs},
+    costs: { ...config.costs },
     LCC
   }
 }

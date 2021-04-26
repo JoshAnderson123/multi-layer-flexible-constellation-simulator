@@ -341,12 +341,11 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   const textColor = 'hsl(0,0%,80%)'
 
   const evlRad = 5
-  const NLWidth = 4
 
   ctx.clearRect(0, 0, c.width, c.height)
-  ctx.fillStyle = `hsl(0,0%,40%)`
+  ctx.fillStyle = `hsl(0,0%,35%)`
   ctx.fillRect(0, 0, c.width, c.height)
-  ctx.fillStyle = `hsl(0,0%,25%)`
+  ctx.fillStyle = `hsl(0,0%,20%)`
   ctx.fillRect(VP_LEFT, VP_TOP, V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT, V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM)
 
   const SCALE_FACTOR = 1
@@ -390,17 +389,17 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   function drawEvolution(color, type, x, y) {
     ctx.fillStyle = color
     const evolutionShaddow = 'rgba(0,0,0,0.4)'
-    
+
     if (type === 'NL') {
       ctx.fillStyle = evolutionShaddow
-      ctx.fillRect(sharpen(x - (evlRad+5)), sharpen(y - (evlRad+5)), (evlRad+5) * 2, (evlRad+5) * 2)
+      ctx.fillRect(sharpen(x - (evlRad + 5)), sharpen(y - (evlRad + 5)), (evlRad + 5) * 2, (evlRad + 5) * 2)
       ctx.fillStyle = color
-      ctx.fillRect(sharpen(x - (evlRad+1)), sharpen(y - (evlRad+1)), (evlRad+1) * 2, (evlRad+1) * 2)
+      ctx.fillRect(sharpen(x - (evlRad + 1)), sharpen(y - (evlRad + 1)), (evlRad + 1) * 2, (evlRad + 1) * 2)
     } else {
 
       ctx.fillStyle = evolutionShaddow
       ctx.beginPath();
-      ctx.arc(x, y, evlRad+4, 0, Math.PI * 2);
+      ctx.arc(x, y, evlRad + 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = color
       ctx.beginPath();
@@ -422,7 +421,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     ctx.strokeStyle = 'rgba(255, 50, 50, 0.05)'
     ctx.lineWidth = 1.5;
 
-    for(let s = 0; s < simulation.stochasticScenarios.length; s++) {
+    for (let s = 0; s < simulation.stochasticScenarios.length; s++) {
       ctx.beginPath();
       ctx.moveTo(calcX(0), calcY(0));
       for (let d = 1; d <= simulation.inputs.steps; d++) {
@@ -481,9 +480,25 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   }
 
   function drawStep() {
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
     ctx.lineWidth = 1;
-    drawLine(calcX(currentStep * STEP), VP_TOP, calcX(currentStep * STEP), VP_TOP + V_GRAPH_HEIGHT)
+
+    function drawTriangle(x, y, size) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x+size, y+size*1.5);
+      ctx.lineTo(x-size, y+size*1.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+
+    const x = calcX(currentStep * STEP)
+    const y = VP_TOP + V_GRAPH_HEIGHT
+    drawLine(x, y, x, y - V_GRAPH_HEIGHT)
+    drawTriangle(x+1, y, 6)
   }
 
   function drawXLabels() {

@@ -5,7 +5,10 @@ export const defaultInputs_2 = {
     r: '0|0.05|0.55',  // '0.1|0.1|0.6'
     rec: '0|0.05|0.5', // '0.2,0.5
     σ: '0.2', // '0.1|0.1|0.5'
-    S: '1'
+    S: '1',
+    μ: '0.77119',
+    start: '50000',
+    capMax: '15000000',
   },
   strategy: {
     J: '1.25|0.25|10', // 1.5|0.5|5
@@ -26,7 +29,10 @@ export const defaultInputs = { // OG
     r: '0|0.1|0.5',  // '0.1|0.1|0.6'
     rec: '0.2', // '0.2,0.5
     σ: '0.2', // '0.1|0.1|0.5'
-    S: '10'
+    S: '10',
+    μ: '0.77119',
+    start: '50000',
+    capMax: '15000000',
   },
   strategy: {
     J: '1.5', // 1.5|0.5|5
@@ -47,7 +53,10 @@ export const defaultInputs_SC = { // Single case
     r: '0',  // '0.1|0.1|0.6'
     rec: '0.2', // '0.2,0.5
     σ: '0.2', // '0.1|0.1|0.5'
-    S: '2'
+    S: '2',
+    μ: '0.77119',
+    start: '50000',
+    capMax: '15000000',
   },
   strategy: {
     J: '1.5', // 1.5|0.5|5
@@ -68,7 +77,10 @@ export const defaultInputs_3 = {
     r: '0|0.05|0.5',  // '0.1|0.1|0.6'
     rec: '0|0.05|0.5', // '0.2,0.5
     σ: '0.2', // '0.1|0.1|0.5'
-    S: '1'
+    S: '1',
+    μ: '0.77119',
+    start: '50000',
+    capMax: '15000000',
   },
   strategy: {
     J: '1.5|0.5|5', // 1.5|0.5|5
@@ -89,6 +101,9 @@ export const formatParam = {
   'rec': 'Reconfig Cost',
   'σ': 'Volatility',
   'S': 'Num Scenarios',
+  'μ': 'Growth Rate',
+  'start': 'Starting Demand',
+  'capMax': 'capMax',
   'J': 'Capacity Jump',
   'Lm': 'Max Layers',
   'D': 'Antenna Diameter',
@@ -130,7 +145,7 @@ export const layerColors = ['00eeee', '4444ff', 'c300ff', 'ff003c', 'fc7f03']
 
 export const defaultSim = {
   T: 10,             // Simulation time (Years)
-  μ: 0.77119,    // Annual expected rate of return 
+  μ: 0.77119,        // Annual expected rate of return 
   σ: 0.2,            // Volatility 
   steps: 480,        // Steps in each scenario (480 in 10 years = 1 step/week (approx))
   start: 50000,      // Start demand

@@ -32,7 +32,8 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
           title='Scenarios' type='scenario' inputs={inputs} setInputs={setInputs}
           view={viewSce} setView={setViewSce}
         />
-        <Flex f='FS' cn='w100 font-grid-small c-d2' mt='30px'>{`Total Unit Simulations: ${calcTotalUnitSimulations(inputs)}`}</Flex>
+        <ScenarioConfig view={viewSce} inputs={inputs} setInputs={setInputs} />
+        <Flex f='FS' cn='w100 font-grid-small ct1' mt='30px'>{`Total Unit Simulations: ${calcTotalUnitSimulations(inputs)}`}</Flex>
       </Flex>
       <Center cn='w100 font-title2 c-d1 bc2-2 rig' h='100px'>
         <Center w='280px' h='60px' cn={`bc1 c-l1 font-btn bshbtn2 us-none ${canRun ? 'ptr hoverGrow' : ''}`} o={canRun ? '1' : '0.5'} oc={() => canRun ? setPanel('running') : null} >
@@ -47,7 +48,15 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
 function AttrContainer({ title, type, inputs, setInputs, view, setView }) { // tt = total text
 
   function renderTable() {
+
     if (!view) return null
+
+    if (type === 'scenario') return [
+      <Header />,
+      ['r', 'rec', 'σ'].map(param =>
+        <Record key={param} type={type} param={param} range={inputs[type][param]} setInputs={setInputs} />
+      )
+    ]
 
     return [
       <Header />,
@@ -105,6 +114,40 @@ function Record({ type, param, range, setInputs }) {
       <Input value={range} cn='font-grid b-none bc2-4' pl={indent} onChange={e => updateRange(e)} />
       <Flex f='FS' cn='bc2-2' pl={indent}>{entries}</Flex>
     </Grid>
+  )
+}
+
+function ScenarioConfig({ view, inputs, setInputs }) {
+  if (view) return (
+    <>
+      <Center cn='w100 bc2-3' h='1px' mt='10px'></Center>
+      <Flex f='FB' cn='w100' pt='10px'>
+        <ScenarioConfigItem setInputs={setInputs} param='S' value={inputs.scenario['S']} />
+        <ScenarioConfigItem setInputs={setInputs} param='start' value={inputs.scenario['start']} />
+        <ScenarioConfigItem setInputs={setInputs} param='μ' value={inputs.scenario['μ']} />
+        <ScenarioConfigItem setInputs={setInputs} param='capMax' value={inputs.scenario['capMax']} />
+      </Flex>
+    </>
+  )
+
+  return null
+}
+
+function ScenarioConfigItem({ param, value, setInputs, ...props }) {
+
+  function updateValue(e) {
+    setInputs(prevInputs => {
+      const newInputs = deepCopy(prevInputs)
+      newInputs.scenario[param] = e.target.value
+      return newInputs
+    })
+  }
+
+  return (
+    <Flex f='FB' h='28px' cn='rel' {...props} >
+      <Flex f='FS' pl='10px' w='160px' cn='bc2-2 h100'>{formatParam[param]}</Flex>
+      <Input value={value} cn='font-grid b-none bc2-4 h100' w='120px' pl={indent} onChange={e => updateValue(e)} />
+    </Flex>
   )
 }
 

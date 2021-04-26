@@ -12,7 +12,9 @@ export function createSimulation(inputs, arcs) {
 
   const { T, μ, steps, start, r, capMax } = inputs
   const numScenarios = inputs.σ === 0 ? 1 : inputs.numScenarios
-  const σ = scaleTheta(inputs.σ)
+  const σ = scaleTheta(inputs.σ, μ)
+
+  console.log(σ, inputs.σ)
 
   const simulation = {}
   const [detScenario, detFinal] = deterministicScenario(T, μ, start, steps)
@@ -239,7 +241,7 @@ export function createSimulation(inputs, arcs) {
 
   function calcEvolutions(J, fam, Lm) { // Calculate the maximum expected reconfigurations in a demand scenario
 
-    const f = calcFirstArc(start, fam.cfgs)
+    const f = calcFirstArc(start, fam.cfgs, J)
     const layers = [f.id]
     const evolutions = [{ type: 'init', layer: 0, id: f.id }]
     let totalCap = calcTC()
@@ -401,12 +403,18 @@ export function createSimulation(inputs, arcs) {
     return scenarios[Math.floor(Math.random() * scenarios.length)]
   }
 
-  function scaleTheta(σ) {
+  function scaleTheta(σ, μ) {
     // The demand model is deterministic when σ = 0.1
     // It is logically expected that determiniscity is achieved at σ = 0
     // This function scales theta to make the model deterministic at σ = 0
-    if (σ < 0) return 0.1
-    if (σ < 0.2) return (σ / 2) + 0.1
+
+    const relμ = μ / 0.77119
+    const ratio = 2
+    const floor = 0.1 * relμ
+    const thresh = 0.1 * ratio * relμ
+
+    if (σ < 0) return floor
+    if (σ < thresh) return (σ / ratio) + floor
     return σ
   }
 
