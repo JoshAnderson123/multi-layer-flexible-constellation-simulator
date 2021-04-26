@@ -541,8 +541,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     const ox = VP_LEFT + 10
     const oy = VP_TOP + 10
 
-    ctx.fillRect(sharpen(ox), sharpen(oy), 210, 60)
-    ctx.strokeRect(sharpen(ox), sharpen(oy), 210, 60)
+    ctx.fillRect(sharpen(ox), sharpen(oy), 215, 60)
+    ctx.strokeRect(sharpen(ox), sharpen(oy), 215, 60)
 
     drawLegendLines()
     drawLegendEvolutions()
@@ -578,11 +578,11 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
       drawEvolution('#dddddd', 'NL', ox + eox, oy + eoy)
       ctx.fillStyle = textColor
-      ctx.fillText('New Layer', ox + eox + 12, oy + eoy + 5);
+      ctx.fillText('New Layer', ox + eox + 17, oy + eoy + 5);
 
       drawEvolution('#dddddd', 'recon', ox + eox, oy + eoy + es)
       ctx.fillStyle = textColor
-      ctx.fillText('Reconfiguration', ox + eox + 12, oy + eoy + es + 5);
+      ctx.fillText('Reconfiguration', ox + eox + 17, oy + eoy + es + 5);
 
     }
   }
