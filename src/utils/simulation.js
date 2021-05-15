@@ -14,8 +14,6 @@ export function createSimulation(inputs, arcs) {
   const numScenarios = inputs.σ === 0 ? 1 : inputs.numScenarios
   const σ = scaleTheta(inputs.σ, μ)
 
-  console.log(σ, inputs.σ)
-
   const simulation = {}
   const [detScenario, detFinal] = deterministicScenario(T, μ, start, steps)
   const scenarios = stochasticScenarios(T, μ, σ, start, steps, numScenarios, detFinal)
@@ -155,7 +153,7 @@ export function createSimulation(inputs, arcs) {
         for(let i = prevEvlT; i < steps + 1; i++) LCC += OC * discountArr[i]
         ELCC += LCC
       }
-
+      
       ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
       
       avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
@@ -341,16 +339,12 @@ export function createSimulation(inputs, arcs) {
  * @param {object} b ID of next arhitecture to evolve to
  * @return {number} Cost ($M)
  */
-  function evolutionNLCosts2(family, id, layers, maxReconsPerSat) {
-    const newArch = family.cfgs[id]
-    const newSats = newArch.n
-    const newTotalN = calcTotalN([...layers, id], family) // Total number of satellites after new layer
+  function evolutionNLCosts2(family, newArcID, layers, maxReconsPerSat) {
 
-    const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
-    const LC = calcLaunchCost(family.m.totalMass, newSats)
-    const RC = maxReconsPerSat * PC * inputs.reconCost
+    const newArc = family.cfgs[newArcID]
+    const newSats = newArc.n
 
-    return PC + LC + RC
+    return calcEvolutionCosts(layers, family, newSats, maxReconsPerSat)
   }
 
 
@@ -361,14 +355,20 @@ export function createSimulation(inputs, arcs) {
 * @param {object} b ID of next arhitecture to evolve to
 * @return {number} Cost ($M)
 */
-  function evolutionReconMultiCosts(family, a, b, arcs, maxReconsPerSat) {
+  function evolutionReconMultiCosts(family, a, b, layers, maxReconsPerSat) {
 
     const currArch = family.cfgs[a]
     const nextArch = family.cfgs[b]
     const newSats = nextArch.n - currArch.n
-    const newTotalN = calcTotalN(arcs, family) + newSats // Total number of satellites after reconfiguration
+    
+    return calcEvolutionCosts(layers,family, newSats, maxReconsPerSat)
+  }
 
-    const PC = (prodCostMulti(newTotalN, family) / newTotalN) * newSats
+  function calcEvolutionCosts(layers,family, newSats, maxReconsPerSat) {
+    
+    const oldTotalN = calcTotalN(layers, family) // Current total number of satellites
+    const newTotalN = oldTotalN + newSats // Total number of satellites after new layer
+    const PC = prodCostMulti(newTotalN, family) - prodCostMulti(oldTotalN, family)
     const LC = calcLaunchCost(family.m.totalMass, newSats)
     const RC = maxReconsPerSat * PC * inputs.reconCost
 

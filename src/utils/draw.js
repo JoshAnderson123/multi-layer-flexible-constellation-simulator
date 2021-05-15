@@ -543,7 +543,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
     ctx.fillText('Year', VP_LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 50);
 
-    drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Capacity', -Math.PI / 2)
+    drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
   }
 
   function drawLegend() {

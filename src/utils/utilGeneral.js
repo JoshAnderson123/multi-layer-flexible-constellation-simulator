@@ -1,6 +1,6 @@
 import { defaultSim, replaceStrs } from "../config";
 import { optimiseFlexM, optimiseFlexS } from "./optimise";
-import { calcInputParamRanges } from "./tradespace";
+import { calcInputParamRanges, generateParamArrays, generateTradespace } from "./tradespace";
 
 export function commas(x) {
   return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
@@ -295,19 +295,32 @@ export function parseConst(id, str = false) {
 
 export function copyHeatmapToClipboard(HMResults) {
 
-  const rows = HMResults.config.varParams.v2.range.length
-  const cols = HMResults.config.varParams.v1.range.length
+  const rows = HMResults.config.var.v2.range.length
+  const cols = HMResults.config.var.v1.range.length
 
   let tableStr = '<table>'
 
   tableStr += '<tr><td></td>'
-  for (let c = 0; c < cols; c++) tableStr += `<td>${HMResults.config.varParams.v1.range[c]}</td>`
+  for (let c = 0; c < cols; c++) tableStr += `<td>${HMResults.config.var.v1.range[c]}</td>`
   tableStr += '</tr>'
 
   for (let r = 0; r < rows; r++) {
-    tableStr += `<tr><td>${HMResults.config.varParams.v2.range[r]}</td>`
+    tableStr += `<tr><td>${HMResults.config.var.v2.range[r]}</td>`
     for (let c = 0; c < cols; c++) tableStr += `<td>${HMResults.data[r * cols + c]}</td>`
     tableStr += '</tr>'
+  }
+
+  tableStr += '</table>'
+
+  copyToClipboard(tableStr)
+}
+
+export function copyAvgResultsRangeToClipboard(results) {
+
+  let tableStr = '<table>'
+
+  for (let r = 0; r < results.length; r++) {
+    tableStr += `<tr><td>${results[r].input}</td><td>${results[r].output}</td></tr>`
   }
 
   tableStr += '</table>'
@@ -318,14 +331,10 @@ export function copyHeatmapToClipboard(HMResults) {
 
 export function copyResultsToClipboard(inputs, results) {
   copyToClipboard(compressResultFile(inputs, results))
-  // copyToClipboard(JSON.stringify({inputs, results: compressResults(inputs, results)}))
-  // const data = { inputs, results }
-  // copyToClipboard(JSON.stringify(data))
 }
 
 
 export function copyToClipboard(value) {
-
   navigator.clipboard.writeText(value)
 
   // const elem = document.createElement('textarea');
@@ -625,4 +634,86 @@ export function copyConfig(config, LCC) {
     costs: { ...config.costs },
     LCC
   }
+}
+
+export function averageResults(inputs, results, output) {
+
+  const scenarioTSB = generateTSB(inputs)
+  const scenarios = generateTradespace(scenarioTSB.scenarios)
+
+  let total = 0
+
+  for (let s of scenarios) {
+    const xTrad = findxTrad(s, results)
+    const xFlexS = findxFlex(s, results, 'single')
+    const xFlexM = findxFlex(s, results, 'multi')
+    total += calcResult(xTrad, xFlexS, xFlexM, output)
+  }
+
+  return total / scenarios.length
+}
+
+export function averageResultsRange(inputs, results, output, rangeParam) {
+
+  const scenarioTSB = generateTSB(inputs)
+  const scenarios = generateTradespace(scenarioTSB.scenarios)
+
+  const { t } = generateParamArrays({[rangeParam]: scenarioTSB.scenarios[rangeParam]})
+  const pArr = t[0] // Param Array
+  const resultArr = []
+
+  for(let p of pArr) {
+
+    let total = 0
+    const filteredScenarios = scenarios.filter(x => x[rangeParam] === p)
+
+    for (let s of filteredScenarios) {
+      const xTrad = findxTrad(s, results)
+      const xFlexS = findxFlex(s, results, 'single')
+      const xFlexM = findxFlex(s, results, 'multi')
+      total += calcResult(xTrad, xFlexS, xFlexM, output)
+    }
+  
+    resultArr.push({input: p, output: total / filteredScenarios.length}) 
+  }
+
+  copyAvgResultsRangeToClipboard(resultArr)
+  
+  return resultArr
+}
+
+export function maxResults(inputs, results, output) {
+
+  const scenarioTSB = generateTSB(inputs)
+  const scenarios = generateTradespace(scenarioTSB.scenarios)
+
+  let max = -Infinity
+
+  for (let s of scenarios) {
+    const xTrad = findxTrad(s, results)
+    const xFlexS = findxFlex(s, results, 'single')
+    const xFlexM = findxFlex(s, results, 'multi')
+    const current = calcResult(xTrad, xFlexS, xFlexM, output)
+    max = current > max ? current : max
+  }
+
+  return max
+}
+
+export function minResults(inputs, results, output) {
+
+  const scenarioTSB = generateTSB(inputs)
+  const scenarios = generateTradespace(scenarioTSB.scenarios)
+
+  let min = Infinity
+
+  for (let s of scenarios) {
+    const xTrad = findxTrad(s, results)
+    const xFlexS = findxFlex(s, results, 'single')
+    const xFlexM = findxFlex(s, results, 'multi')
+    const current = calcResult(xTrad, xFlexS, xFlexM, output)
+    min = current < min ? current : min
+  }
+
+  return min
 }

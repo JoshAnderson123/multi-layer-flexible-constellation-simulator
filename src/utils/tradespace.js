@@ -108,6 +108,7 @@ function formatVector(i, a) {
 export function generateTradespace(b) {
 
   const { t, i } = generateParamArrays(b)
+
   const tradespace = []
 
   function generateSubTS(t, i, a) {

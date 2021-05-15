@@ -19,9 +19,8 @@ export function Stars({ renderCtx }) {
 }
 
 export function StarsLoading() {
-  console.log('Stars loading')
   return (
-    <mesh >
+    <mesh>
       <sphereBufferGeometry attach="geometry" args={[200, 6, 6]} />
       <meshBasicMaterial attach="material" color={"#000000"} />
     </mesh>

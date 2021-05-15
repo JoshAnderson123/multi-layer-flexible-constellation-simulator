@@ -12,7 +12,7 @@ function dB(A) { return 10 * Math.log10(A) }  // Converts number to dB
 function toRatio(A) { return 10 ** (A / 10) } // Converts dB to number
 
 /**
- * Calculates the data rate of an architecture
+ * Calculates the data rate of an architecture based on its design variables
  * @param {number} D Antenna diameter (m)
  * @param {number} f Transmitter frequency (GHz)
  * @param {number} P Transmitter Power (W)

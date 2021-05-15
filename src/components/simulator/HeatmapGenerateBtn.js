@@ -9,6 +9,7 @@ export default function HeatmapGenerateBtn({ results, params, paramRanges, setHM
 
   function generateResultMatrix() {
 
+
     if (sameParams()) return
 
     const config = {
@@ -42,7 +43,13 @@ export default function HeatmapGenerateBtn({ results, params, paramRanges, setHM
 
       function getFlexStrat(type) {
         if (config.con.optimal === 'true') {
-          const scen = {r: params.con.r, rec: params.con.rec, σ: params.con.σ, [v1param]: v1range[i1], [v2param]: v2range[i2] }
+          const scen = {
+            r: config.con.r,
+            rec: config.con.rec,
+            σ: config.con.σ,
+            [v1param]: v1range[i1],
+            [v2param]: v2range[i2]
+          }
           return findxFlex(scen, results, type)
         }
         return results.flex.find(x =>
@@ -73,6 +80,7 @@ export default function HeatmapGenerateBtn({ results, params, paramRanges, setHM
         data.push(result)
       }
     }
+
     setHMResults({ config, data })
   }
 

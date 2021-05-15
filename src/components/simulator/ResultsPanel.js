@@ -34,11 +34,11 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
       <Center cn='h100 grow bc2-2 ct1'>
         <Flex f='FSVS' cn='font-result-data ws-pre' ml='-30px' >
           <Flex f='FS'>{`              xTrad.LCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'xTrad.LCC')}`}</Flex>
-          <Flex f='FS' mt='3px'>{`             flexS.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexS.ELCC')}`}</Flex>
-          <Flex f='FS' mt='3px'>{`             flexM.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC')}`}</Flex>
-          <Flex f='FS' mt='3px'>{` flexS.ELCC / xTrad.LCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexS.ELCC / xTrad.LCC')}`}</Flex>
-          <Flex f='FS' mt='3px'>{` flexM.ELCC / xTrad.LCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC / xTrad.LCC')}`}</Flex>
-          <Flex f='FS' mt='3px'>{`flexM.ELCC / flexS.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC / flexS.ELCC')}`}</Flex>
+          <Flex f='FS' mt='3px'>{`              xFlexS.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexS.ELCC')}`}</Flex>
+          <Flex f='FS' mt='3px'>{`              xFlexM.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC')}`}</Flex>
+          <Flex f='FS' mt='3px'>{`  xFlexS.ELCC / xTrad.LCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexS.ELCC / xTrad.LCC')}`}</Flex>
+          <Flex f='FS' mt='3px'>{`  xFlexM.ELCC / xTrad.LCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC / xTrad.LCC')}`}</Flex>
+          <Flex f='FS' mt='3px'>{`xFlexM.ELCC / xFlexS.ELCC: ${calcResultFormatted(xTrad, xFlexS, xFlexM, 'flexM.ELCC / flexS.ELCC')}`}</Flex>
         </Flex>
       </Center>
     )

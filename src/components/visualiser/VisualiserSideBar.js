@@ -122,7 +122,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
         <Flex f='FBS' cn='w100'>
 
           <Flex f='FSV' w='140px'>
-            <Center cn='font-title3'>Scenario</Center>
+            <Center cn='font-title3'>Case</Center>
             <Flex f='FSV' cn='rel' l='-18px' mt='10px'>
               <DropdownConst id='c-r' name='r' options={paramRanges.r} onChange={generateScenario} />
               <DropdownConst id='c-rec' name='rec' options={paramRanges.rec} onChange={generateScenario} />

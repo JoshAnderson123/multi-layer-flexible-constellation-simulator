@@ -29,7 +29,7 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
           view={viewStr} setView={setViewStr}
         />
         <AttrContainer
-          title='Scenarios' type='scenario' inputs={inputs} setInputs={setInputs}
+          title='Cases' type='scenario' inputs={inputs} setInputs={setInputs}
           view={viewSce} setView={setViewSce}
         />
         <ScenarioConfig view={viewSce} inputs={inputs} setInputs={setInputs} />
@@ -74,7 +74,7 @@ function AttrContainer({ title, type, inputs, setInputs, view, setView }) { // t
           <Flex f='FS'>
             {title}
           </Flex>
-          <Center ml='15px' cn='font-grid-small rel c-d2' t='2px'>
+          <Center ml='15px' cn='font-grid-small rel ct1' t='2px'>
             {`(${formatTotals(inputs, type)})`}
           </Center>
         </Center>
