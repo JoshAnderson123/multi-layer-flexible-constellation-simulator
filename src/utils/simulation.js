@@ -108,13 +108,10 @@ export function createSimulation(inputs, arcs) {
 
       const evolutions = calcEvolutions(J, family, Lm)
       const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
-      console.log(J, family, Lm, evolutions, maxReconsPerSat)
 
       let ELCC = 0 // Initialise expected LCC
       let avgR = 0 // Initialise average number of reconfigurations
       let avgN = 0 // Initialise average number of newLayers
-
-      console.log('-------------', Lm)
 
       for (let demand of scenarios) { // Run through every demand scenario
 
@@ -176,7 +173,7 @@ export function createSimulation(inputs, arcs) {
 
     const evolutions = calcEvolutions(J, family, Lm)
     const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
-    console.log(J, family, Lm, evolutions, maxReconsPerSat)
+
     let curEvl = 0 // Current evolution
     // const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
 
@@ -203,8 +200,6 @@ export function createSimulation(inputs, arcs) {
 
     let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
     let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
-
-    console.log('------------V-', Lm)
 
     for (let t = 1; t < testScenario.length; t++) { // Run through the scenario
 
@@ -377,8 +372,6 @@ export function createSimulation(inputs, arcs) {
     const PC = prodCostMulti(newTotalN, family) - prodCostMulti(oldTotalN, family)
     const LC = calcLaunchCost(family.m.totalMass, newSats)
     const RC = maxReconsPerSat * PC * inputs.reconCost
-
-    console.log('PC', PC, 'RC', RC, 'LC', LC)
 
     return PC + LC + RC
   }
