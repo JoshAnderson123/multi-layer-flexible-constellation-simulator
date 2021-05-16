@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { generateArchitectures } from '../../utils/architectures'
 import { createSimulation } from '../../utils/simulation'
 import { calcResultParamRanges } from '../../utils/tradespace'
-import { findFlex, findxFlex, findxTrad, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
+import { findFlex, findxFlex, findxTrad, formatArcsPF, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
 import { Center, Flex, Grid, Img } from '../blocks/blockAPI'
 import { DropdownConst } from '../simulator/Dropdown'
 import { VP_LEFT, VP_RIGHT } from '../../config'
 import { drawVisualisationGraph } from '../../utils/draw'
+import { filterParetoOptimal } from '../../utils/optimise'
 
 export default function VisualiserSideBar({ inputs, results, visuResults, updateVisuResults, playing, setPlaying, currentStep, updateStep, setCurrentStrat, setPlayspeed }) {
 
@@ -66,18 +67,22 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
 
       const flexParams = { e: inputs.architecture.e, a: inputs.architecture.a }
 
+      function runScen(flex) {
+        const fixedParams = { D: flex.D.toString(), P: flex.P.toString(), f: flex.f.toString(), I: flex.I.toString() }
+        const family = generateArchitectures(fixedParams, flexParams)//[0]
+        const arcsTrad = simulation.current.runTrad(family)
+        const arcsParetoFam = filterParetoOptimal(arcsTrad)[0]
+        updateVisuResults(simulation.current.runFlexVisual(arcsParetoFam, { J: flex.J, Lm: flex.Lm }))
+      }
+
       if (stratType === 'flexS') {
         const flexS = (optimum === 'true') ? findxFlex(scen, results, 'single') : findFlex(scen, strat, results, 'single')
-        const fixedParams = { D: flexS.D.toString(), P: flexS.P.toString(), f: flexS.f.toString(), I: flexS.I.toString() }
-        const family = generateArchitectures(fixedParams, flexParams)[0]
-        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexS.J, Lm: flexS.Lm }))
+        runScen(flexS)
       }
 
       if (stratType === 'flexM') {
         const flexM = (optimum === 'true') ? findxFlex(scen, results, 'multi') : findFlex(scen, strat, results, 'multi')
-        const fixedParams = { D: flexM.D.toString(), P: flexM.P.toString(), f: flexM.f.toString(), I: flexM.I.toString() }
-        const family = generateArchitectures(fixedParams, flexParams)[0]
-        updateVisuResults(simulation.current.runFlexVisual(family, { J: flexM.J, Lm: flexM.Lm }))
+        runScen(flexM)
       }
     }
 

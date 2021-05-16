@@ -44,7 +44,7 @@ export function createSimulation(inputs, arcs) {
  * @return {object} Tradespace with LCC for each architecture 
  */
   function runTrad(ts) { // Don't use deepCopy (Currently an error)
-    
+
     const tsf = []
     const dt = T / steps // # Steps / year
 
@@ -53,7 +53,7 @@ export function createSimulation(inputs, arcs) {
       for (let config of family.cfgs) {   // For each configuration in the fam
         let LCC = config.costs.IDC + config.costs.PC + config.costs.LC // Initial costs
         const OC = config.costs.OC * dt
-        for(let i = 1; i < steps + 1; i++) LCC += OC * discountArr[i]
+        for (let i = 1; i < steps + 1; i++) LCC += OC * discountArr[i]
         newCfgs.push(copyConfig(config, LCC))
       }
       newCfgs.sort((a, b) => a.LCC - b.LCC)
@@ -108,10 +108,13 @@ export function createSimulation(inputs, arcs) {
 
       const evolutions = calcEvolutions(J, family, Lm)
       const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
+      console.log(J, family, Lm, evolutions, maxReconsPerSat)
 
       let ELCC = 0 // Initialise expected LCC
       let avgR = 0 // Initialise average number of reconfigurations
       let avgN = 0 // Initialise average number of newLayers
+
+      console.log('-------------', Lm)
 
       for (let demand of scenarios) { // Run through every demand scenario
 
@@ -127,7 +130,7 @@ export function createSimulation(inputs, arcs) {
           if (demand[t] > totalCap && totalCap < capMax) { // If constellation should evolve
 
             const OC = combinedOC(totalN)
-            for(let i = prevEvlT; i < t; i++) LCC += OC * discountArr[i]
+            for (let i = prevEvlT; i < t; i++) LCC += OC * discountArr[i]
 
             curEvl++
             const evl = evolutions[curEvl]
@@ -148,14 +151,14 @@ export function createSimulation(inputs, arcs) {
             prevEvlT = t + 1
           }
         }
-        
+
         const OC = combinedOC(totalN)
-        for(let i = prevEvlT; i < steps + 1; i++) LCC += OC * discountArr[i]
+        for (let i = prevEvlT; i < steps + 1; i++) LCC += OC * discountArr[i]
         ELCC += LCC
       }
-      
+
       ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
-      
+
       avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
       avgN = round(avgN / scenarios.length, 4)
       tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, J }) // Add this family and its ELCC to the final list
@@ -173,6 +176,7 @@ export function createSimulation(inputs, arcs) {
 
     const evolutions = calcEvolutions(J, family, Lm)
     const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
+    console.log(J, family, Lm, evolutions, maxReconsPerSat)
     let curEvl = 0 // Current evolution
     // const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
 
@@ -199,6 +203,8 @@ export function createSimulation(inputs, arcs) {
 
     let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
     let LCCarr = [startCosts(family, layers, maxReconsPerSat)] // Initialise the LCC array
+
+    console.log('------------V-', Lm)
 
     for (let t = 1; t < testScenario.length; t++) { // Run through the scenario
 
@@ -360,17 +366,19 @@ export function createSimulation(inputs, arcs) {
     const currArch = family.cfgs[a]
     const nextArch = family.cfgs[b]
     const newSats = nextArch.n - currArch.n
-    
-    return calcEvolutionCosts(layers,family, newSats, maxReconsPerSat)
+
+    return calcEvolutionCosts(layers, family, newSats, maxReconsPerSat)
   }
 
-  function calcEvolutionCosts(layers,family, newSats, maxReconsPerSat) {
-    
+  function calcEvolutionCosts(layers, family, newSats, maxReconsPerSat) {
+
     const oldTotalN = calcTotalN(layers, family) // Current total number of satellites
     const newTotalN = oldTotalN + newSats // Total number of satellites after new layer
     const PC = prodCostMulti(newTotalN, family) - prodCostMulti(oldTotalN, family)
     const LC = calcLaunchCost(family.m.totalMass, newSats)
     const RC = maxReconsPerSat * PC * inputs.reconCost
+
+    console.log('PC', PC, 'RC', RC, 'LC', LC)
 
     return PC + LC + RC
   }
