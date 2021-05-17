@@ -15,6 +15,7 @@ export default function RunningPanel({ inputs, updateResults }) {
   const architectures = useRef()
   const simulation = useRef()
   const resultsTemp = useRef({ flex: [], xTrad: [] })
+  const caseFTemp = useRef([])
   const arcsParetoFam = useRef()
   const strats = useRef([])
   const scenarios = useRef([])
@@ -49,16 +50,24 @@ export default function RunningPanel({ inputs, updateResults }) {
         const arcsTrad = simulation.current.runTrad(architectures.current)
         const xTrad = optimiseTrad(arcsTrad, simulation.current.inputs.capMax)
         resultsTemp.current.xTrad.push({ ...xTrad, ...scenarioData(scenarios.current[cur.scen]) })
+        caseFTemp.current = []
       }
 
       // Run simulation
       const result = simulation.current.runFlex(arcsParetoFam.current, strats.current[cur.strat])
-      resultsTemp.current.flex.push({ ...result, ...scenarioData(scenarios.current[cur.scen]) }) // Append scenario info to the result
+      // resultsTemp.current.flex.push({ ...result, ...scenarioData(scenarios.current[cur.scen]) }) // Append scenario info to the result
+      caseFTemp.current.push({ ...result, ...scenarioData(scenarios.current[cur.scen]) }) // Append scenario info to the result
 
       // Update the strategy and scenario counter
       if (cur.strat < strats.current.length - 1) {
         setCur(prev => ({ strat: prev.strat + 1, scen: prev.scen }))
       } else {
+        if (inputs.scenario.optimal === 'true') {
+          resultsTemp.current.flex.push(optimiseFlexS(caseFTemp.current))
+          resultsTemp.current.flex.push(optimiseFlexM(caseFTemp.current))
+        } else {
+          resultsTemp.current.flex.push(...caseFTemp.current)
+        }
         setCur(prev => ({ strat: 0, scen: prev.scen + 1 }))
       }
 
@@ -74,7 +83,7 @@ export default function RunningPanel({ inputs, updateResults }) {
       logNS('---------------')
       logNS(resultsTemp.current)
 
-      updateResults(resultsTemp.current)
+      updateResults(resultsTemp.current, null, 'results')
     }
 
   }, [cur])

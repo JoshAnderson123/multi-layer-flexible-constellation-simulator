@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { calcResultParamRanges } from '../../utils/tradespace'
-import { calcResultFormatted, copyResultsToClipboard, findxFlex, findxTrad, openResultsFile, parseConst } from '../../utils/utilGeneral'
+import { calcResultFormatted, caseStr, copyResultsToClipboard, findxFlex, findxTrad, isEmpty, openResultsFile, parseConst } from '../../utils/utilGeneral'
 import { Center, File, Flex, Grid, Img, Input } from '../blocks/blockAPI'
 import { DropdownConst } from './Dropdown'
 import PanelTopBar from './PanelTopBar'
@@ -8,27 +8,27 @@ import ResultBtn from './ResultBtn'
 
 export default function ResultsPanel({ setPanel, inputs, results, updateResults }) { //w='1050px' h='800px
 
-  const [params, setParams] = useState()
+  const [cse, setCse] = useState()
   const paramRanges = calcResultParamRanges(inputs)
 
   useEffect(() => {
     updateParams()
-  }, [])
+  }, [inputs])
 
   function updateParams() {
     const r = parseConst('#c-r')
     const rec = parseConst('#c-rec')
     const σ = parseConst('#c-v')
-    setParams({ r, rec, σ })
+    setCse({ r, rec, σ })
   }
 
   function displayResults() {
-    if (!params || !results.xTrad) return null
+    if (!cse || isEmpty(results)) return null
+    if(!paramRanges.r.includes(cse?.r) || !paramRanges.rec.includes(cse?.rec) || !paramRanges.σ.includes(cse?.σ)) return null
 
-    
-    const xTrad = findxTrad(params, results)
-    const xFlexS = findxFlex(params, results, 'single')
-    const xFlexM = findxFlex(params, results, 'multi')
+    const xTrad = findxTrad(caseStr(cse), results)
+    const xFlexS = findxFlex(caseStr(cse), results, 'single')
+    const xFlexM = findxFlex(caseStr(cse), results, 'multi')
 
     return (
       <Center cn='h100 grow bc2-2 ct1'>
@@ -46,7 +46,7 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
 
   function displayResultButtons() {
 
-    if (!results.xTrad) return (
+    if (isEmpty(results)) return (
       <Flex f='FSV'>
         <Center cn='w100 grow font-title ct1'>No results collected</Center>
         <File id='upload-json' mt='10px' cn='bc1 c-l1 font-small ptr hoverGrow' p='10px' onChange={e => openResultsFile(e, updateResults)}>Upload JSON</File>
@@ -80,7 +80,7 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
       <PanelTopBar setPanel={setPanel} />
       <Center cn='w100 font-title2 ct1 bc2-2 bor-field rig' h='100px'>Results</Center>
       <Flex f='FCV' cn='w100 grow'>
-        <Flex f='FB' w='940px' h='200px' cn={`bor-field-f bc2 ${results.xTrad ? '' : 'none'}`}> {/* Display: none is used rather than return null because the fields need to be in the DOM even if there are no results yet. Could be changed in future */}
+        <Flex f='FB' w='940px' h='200px' cn={`bor-field-f bc2 ${!isEmpty(results) ? '' : 'none'}`}> {/* Display: none is used rather than return null because the fields need to be in the DOM even if there are no results yet. Could be changed in future */}
           <Flex f='FCV' cn='bor-field-r rig rel ct1 h100' w='200px' p='20px' z='100'>
             <Grid gtr='1fr 1fr 1fr' gg='0px' mt='-5px' cn='rel'>
               <DropdownConst id='c-r' name='r' options={paramRanges.r} />

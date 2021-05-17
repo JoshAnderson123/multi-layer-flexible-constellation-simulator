@@ -12,7 +12,7 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
 
   const cols = HMResults.config.var.v1.range.length // swaped from rows
   const rows = HMResults.config.var.v2.range.length // Swaped from cols
-  const testArr = [...Array(rows * cols).keys()]
+  const resultArr = [...Array(rows * cols).keys()]
   const bounds = { min: Math.min(...HMResults.data), max: Math.max(...HMResults.data) }
 
   const scale = chroma.scale([cGood, cBad]).domain([bounds.min, bounds.max]);
@@ -61,7 +61,7 @@ export default function HeatmapGrid({ HMResults, gridW, gridH, tickLen, axisTitl
         cn='font-heatmap abs'
         oml={() => setSelectedVal({ id: -1 })}
       >
-        {testArr.map(i => <HeatmapItem key={i} i={i} HMResults={HMResults} viewValues={viewValues} viewHover={viewHover} scale={scale} setSelectedVal={setSelectedVal} />)}
+        {resultArr.map(i => <HeatmapItem key={i} i={i} HMResults={HMResults} viewValues={viewValues} viewHover={viewHover} scale={scale} setSelectedVal={setSelectedVal} />)}
       </Grid>
 
       {selectedVal.id >= 0 && viewHover ? <HeatmapTooltip selectedVal={selectedVal} /> : null}

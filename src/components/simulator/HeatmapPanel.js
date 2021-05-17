@@ -3,8 +3,6 @@ import { outputOptions, invertParam, inputOptions } from '../../config'
 import { calcResultParamRanges } from '../../utils/tradespace'
 import { averageResults, averageResultsRange, maxResults, minResults } from '../../utils/utilGeneral'
 import { Center, Flex, Grid } from '../blocks/blockAPI'
-import { DropdownVar, DropdownConst, DropdownOpt } from './Dropdown'
-import HeatmapGenerateBtn from './HeatmapGenerateBtn'
 import HeatmapGridWrapper from './HeatmapGridWrapper'
 import HeatmapInput from './HeatmapInput'
 import HeatmapLegend from './HeatmapLegend'
@@ -25,7 +23,7 @@ export default function HeatmapPanel({ inputs, results, setPanel }) { // w='1150
   
   const paramRanges = calcResultParamRanges(inputs)
 
-  averageResultsRange(inputs, results, 'flexM.ELCC / xTrad.LCC', 'rec')
+  // averageResultsRange(inputs, results, 'flexM.ELCC / xTrad.LCC', 'rec')
 
   function updateParams(p) {
 

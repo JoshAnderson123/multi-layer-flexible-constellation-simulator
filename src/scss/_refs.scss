@@ -200,3 +200,10 @@
 .bor-topbar {
   border-bottom: 3px solid $theme-color-2-3;
 }
+
+
+@media (max-width: 1000px) {
+  .grid-adjust {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

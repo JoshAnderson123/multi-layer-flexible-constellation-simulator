@@ -33,6 +33,7 @@ export const defaultInputs = { // OG
     μ: '0.77119',
     start: '50000',
     capMax: '15000000',
+    optimal: 'true'
   },
   strategy: {
     J: '1.5', // 1.5|0.5|5
@@ -112,6 +113,7 @@ export const formatParam = {
   'I': 'Inter Satellite Links',
   'a': 'Altitude',
   'e': 'Min.Elev.Angle',
+  'optimal': 'Optimal'
 }
 
 export const invertParam = Object.keys(formatParam).reduce((ip, param) => ({...ip, [formatParam[param]]: param }), {})
@@ -120,9 +122,12 @@ export const outputOptions = [
   'xTrad.LCC',
   'flexS.ELCC',
   'flexS.avgR',
+  'flexS.P',
   'flexM.ELCC',
   'flexM.avgN',
   'flexM.avgR',
+  'flexM.P',
+  'flexM.Lm',
   'flexM.avgR + flexM.avgN',
   'flexS.ELCC / xTrad.LCC',
   'flexM.ELCC / xTrad.LCC',
@@ -155,7 +160,7 @@ export const defaultSim = {
   reconCost: 0.20    // Reconfiguration cost (% of production cost (per reconfiguration))
 }
 
-export const replaceStrs = new Array(20).fill(0).map((_, i) => i.toString())
+export const replaceStrs = new Array(100).fill(0).map((_, i) => i.toString())
 
 
 //// GRAPHS ////
@@ -175,6 +180,14 @@ export const VP_TOP = 0;
 export const VP_RIGHT = 0;
 export const VP_BOTTOM = 80;
 export const VP_LEFT = 80;
+
+//// HEATMAP GRID /////
+export const HG_OFF = {
+  t: 90,
+  l: 90,
+  b: 0,
+  r: 0
+}
 
 
 

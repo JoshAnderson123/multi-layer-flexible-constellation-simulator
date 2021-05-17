@@ -92,6 +92,7 @@ export function createSimulation(inputs, arcs) {
     const { J, Lm } = flexStratInputs // Extract flexible strategy inputs
     const tsFlexMulti = [] // Initialsie tradespace of families using the multi-layered flexible strategy
     const dt = T / steps // Calculate Time step (years)
+    let xFlex = { ELCC: Infinity }
 
     for (let family of tradespace) { // For each family in the tradespace
 
@@ -158,10 +159,9 @@ export function createSimulation(inputs, arcs) {
 
       avgR = round(avgR / (scenarios.length * Lm), 4) // Divide by number of scenarios to get the average number of reconfigurations per scenario
       avgN = round(avgN / scenarios.length, 4)
-      tsFlexMulti.push({ ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, J }) // Add this family and its ELCC to the final list
+      if (ELCC < xFlex.ELCC) xFlex = { ...family, cfgs: family.cfgs, ELCC, avgR, avgN, Lm, J }
     }
 
-    const xFlex = tsFlexMulti.reduce((lowest, fam) => fam.ELCC < lowest.ELCC ? fam : lowest, { ELCC: Infinity })
     return formatxFlex(xFlex)
   }
 

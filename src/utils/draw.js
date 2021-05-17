@@ -1,6 +1,6 @@
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VP_TOP, VP_RIGHT, VP_BOTTOM, VP_LEFT, layerColors, defaultSim } from '../config'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VP_TOP, VP_RIGHT, VP_BOTTOM, VP_LEFT, layerColors, defaultSim, formatParam, HG_OFF } from '../config'
 import { calcBoundaries } from './architectures';
-import { drawRotatedText, findxFlex, findxTrad, formatCap } from './utilGeneral';
+import { drawRotatedText, findxFlex, findxTrad, floor, formatCap } from './utilGeneral';
 
 export function drawArchTradespace(inputs, results, params) { //tradespace, inputs, xTrad, xFlexS, xFlexM
 
@@ -488,8 +488,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     function drawTriangle(x, y, size) {
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(x+size, y+size*1.5);
-      ctx.lineTo(x-size, y+size*1.5);
+      ctx.lineTo(x + size, y + size * 1.5);
+      ctx.lineTo(x - size, y + size * 1.5);
       ctx.closePath();
       ctx.fill();
     }
@@ -498,7 +498,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     const x = calcX(currentStep * STEP)
     const y = VP_TOP + V_GRAPH_HEIGHT
     drawLine(x, y, x, y - V_GRAPH_HEIGHT)
-    drawTriangle(x+1, y, 6)
+    drawTriangle(x + 1, y, 6)
   }
 
   function drawXLabels() {
@@ -600,5 +600,112 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
       ctx.fillText('Reconfiguration', ox + eox + 17, oy + eoy + es + 5);
 
     }
+  }
+}
+
+
+
+export function drawHeatmap(rows, cols, HMResults, scale) {
+  const c = document.getElementById('heatmap-canvas')
+  const ctx = c.getContext("2d")
+  const C_WIDTH = c.width
+  const C_HEIGHT = c.height
+  const TICK_LEN = 10
+  const textColor = `hsl(0,0%,100%)`
+  const off = HG_OFF
+  const G_WIDTH = C_WIDTH - off.l - off.r
+  const G_HEIGHT = C_HEIGHT - off.t - off.b
+
+  const rowLen = G_HEIGHT / rows
+  const colLen = G_WIDTH / cols
+
+  ctx.clearRect(0, 0, C_WIDTH, C_HEIGHT)
+
+  drawGrid()
+  drawXAxis()
+  drawYAxis()
+  drawTitles()
+
+  function sharpen(v) {
+    return Math.round(v) + 0.5
+  }
+  function sharpenF(v) {
+    return Math.floor(v)
+  }
+  function sharpenC(v) {
+    return Math.ceil(v) + 0.5
+  }
+  function ga(v, axis) { // Grid Align
+    if (axis === 'x') return sharpenF(off.l + v)
+    return sharpenF(off.t + v)
+  }
+  function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(sharpen(x1), sharpen(y1));
+    ctx.lineTo(sharpen(x2), sharpen(y2));
+    ctx.stroke();
+  }
+
+  function drawGrid() {
+    // ctx.fillStyle = `hsl(0,100%,100%)`
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        ctx.fillStyle = scale(HMResults.data[r*cols + c]).hex()
+        ctx.fillRect(ga(c*colLen, 'x'), ga(r*rowLen, 'y'), sharpenC(colLen), sharpenC(rowLen))
+      }
+    }
+  }
+  function drawXAxis() {
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+    ctx.lineWidth = 1
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    let textInt = 1
+
+    if (cols > 10) {
+      textInt = floor(cols/10)
+    }
+
+    for (let c = 0; c < cols; c++) {
+      const x = off.l + c*colLen
+      if(c%textInt === 0) {
+        drawLine(x, off.t, x, off.t - TICK_LEN)
+        ctx.fillText(HMResults.config.var.v1.range[c], x, off.t - TICK_LEN - 5);
+      } else {        
+        drawLine(x, off.t, x, off.t - (TICK_LEN*0.6))
+      }
+    }
+  }
+  function drawYAxis() {
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+    ctx.lineWidth = 1
+    ctx.font = "12px Arial";
+    ctx.textAlign = "right";
+    let textInt = 1
+    if (rows > 10) {
+      textInt = floor(rows/10)
+    }
+
+    for (let r = 0; r < rows; r++) {
+      const y = off.t + r*rowLen
+      if(r%textInt === 0) {
+        drawLine(off.l, y, off.l-TICK_LEN, y)
+        ctx.fillText(HMResults.config.var.v2.range[r], off.l - TICK_LEN - 6, y + TICK_LEN - 5);
+      } else {        
+        drawLine(off.l, y, off.l-(TICK_LEN*0.6), y)
+      }
+    }
+  }
+  function drawTitles() {
+    ctx.font = "20px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+
+    ctx.fillText(formatParam[HMResults.config.var.v1.param], off.l+(G_WIDTH/2), off.t-50);
+    drawRotatedText(ctx, off.l-50, off.t+(G_HEIGHT/2), formatParam[HMResults.config.var.v2.param], -Math.PI / 2);
+    // drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
   }
 }

@@ -210,9 +210,12 @@ export function calcResult(xTrad, flexS, flexM, opt) {
     'xTrad.LCC': xTrad?.LCC,
     'flexS.ELCC': flexS?.ELCC,
     'flexS.avgR': flexS?.avgR,
+    'flexS.P': flexS?.P,
     'flexM.ELCC': flexM?.ELCC,
     'flexM.avgN': flexM?.avgN,
     'flexM.avgR': flexM?.avgR,
+    'flexM.P': flexM?.P,
+    'flexM.Lm': flexM?.Lm,
     'flexM.avgR + flexM.avgN': round(flexM?.avgR + flexM?.avgN, 4),
     'flexS.ELCC / xTrad.LCC': round(flexS?.ELCC / xTrad?.LCC, 4),
     'flexM.ELCC / xTrad.LCC': round(flexM?.ELCC / xTrad?.LCC, 4),
@@ -229,9 +232,12 @@ export function formatHMItem(opt, item) {
     'xTrad.LCC': dollars(item),
     'flexS.ELCC': dollars(item),
     'flexS.avgR': item.toFixed(2),
+    'flexS.P': item,
     'flexM.ELCC': dollars(item),
     'flexM.avgN': item.toFixed(2),
     'flexM.avgR': item.toFixed(2),
+    'flexM.P': item,
+    'flexM.Lm': item,
     'flexM.avgR + flexM.avgN': item,
     'flexS.ELCC / xTrad.LCC': `${(item * 100).toFixed(2)}%`,
     'flexM.ELCC / xTrad.LCC': `${(item * 100).toFixed(2)}%`,
@@ -336,16 +342,11 @@ export function copyResultsToClipboard(inputs, results) {
 
 export function copyToClipboard(value) {
   navigator.clipboard.writeText(value)
-
-  // const elem = document.createElement('textarea');
-  // elem.value = value
-  // document.body.appendChild(elem);
-  // elem.select();
-  // document.execCommand('copy');
-  // document.body.removeChild(elem);
 }
 
-export function compressResultFile(inputs, results) {
+export function compressResultFile(inputs, clumpedResults) {
+
+  const results = flattenResults(clumpedResults)
 
   const IPR = calcInputParamRanges(inputs) // IPR = input param ranges
 
@@ -404,12 +405,12 @@ export function compressResultFile(inputs, results) {
     }
   }
 
-  const compressResultsTemp = { inputs, results: { flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad), tradespace: compressTradespace(results.tradespace) } }
+  // const compressResultsTemp = { inputs, results: { flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad), tradespace: compressTradespace(results.tradespace) } }
+  const compressResultsTemp = { inputs, results: { flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad) } }
   const compressResultsTempStr = JSON.stringify(compressResultsTemp)
   const compressedResults = compressStr(compressResultsTempStr)
 
   return compressedResults
-  // return ({ flex: compressFlex(results.flex), xTrad: compressxTrad(results.xTrad), tradespace: compressTradespace(results.tradespace) })
 }
 
 export function decompressResults(resultFile) { // inputs, results
@@ -457,7 +458,6 @@ export function decompressResults(resultFile) { // inputs, results
       })
     }
     return flexDecompressed
-
   }
 
   function decompressxTrad(xTrad) {
@@ -482,16 +482,17 @@ export function decompressResults(resultFile) { // inputs, results
 
   }
 
-  //JSON.parse(e.target.result)
-
   const decompressedStr = decompressStr(resultFile)
   const decompressedFileTemp = JSON.parse(decompressedStr)
   const inputs = decompressedFileTemp.inputs
-  const results = decompressedFileTemp.results
-
   const IPR = calcInputParamRanges(inputs)
 
-  return ({ inputs, results: { flex: decompressFlex(results.flex), xTrad: decompressxTrad(results.xTrad), tradespace: deCompressTradespace(results.tradespace) } })
+  const resultsTemp = decompressedFileTemp.results
+  // const results = { flex: decompressFlex(resultsTemp.flex), xTrad: decompressxTrad(resultsTemp.xTrad), tradespace: deCompressTradespace(resultsTemp.tradespace) }
+  const results = { flex: decompressFlex(resultsTemp.flex), xTrad: decompressxTrad(resultsTemp.xTrad) }
+
+
+  return ({ inputs, results })
 }
 
 
@@ -502,20 +503,46 @@ export function formatArcsPF(apf) { // Apf = arcs pareto-optimal families
   }))
 }
 
-
-export function findxTrad(p, results) {
-  return results.xTrad.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ)
+export function flattenResults(results) {
+  const flattenedResults = {xTrad: [], flex: []}
+  for(let cse of Object.keys(results)) {
+    flattenedResults.xTrad.push(results[cse].xTrad)
+    for(let f of results[cse].flex) flattenedResults.flex.push(f)
+  }
+  return flattenedResults
 }
 
-export function findxFlex(p, results, type) {
-  const filteredResults = results.flex.filter(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ)
+export function clumpResults(results) {
+  const clumpedResults = {}
+  for(let xTrad of results.xTrad) clumpedResults[caseStr(xTrad)] = {xTrad, flex: []}
+  for(let flex of results.flex) clumpedResults[caseStr(flex)].flex.push(flex)
+  return clumpedResults
+}
+
+export function caseStr(strat) {
+  return `${strat.r},${strat.rec},${strat.σ}`
+}
+
+
+export function findxTrad(cse, results) {
+  return results[cse].xTrad
+  // return results.xTrad.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ)
+}
+
+export function findxFlex(cse, results, type) {
+  const filteredResults = results[cse].flex
   if (type === 'single') return optimiseFlexS(filteredResults)
   return optimiseFlexM(filteredResults)
+  // const filteredResults = results.flex.filter(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ)
+  // if (type === 'single') return optimiseFlexS(filteredResults)
+  // return optimiseFlexM(filteredResults)
 }
 
-export function findFlex(p, strat, results, type) {
-  if (type === 'single') return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === 1)
-  return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === strat.Lm)
+export function findFlex(cse, strat, results, type) {
+  if (type === 'single') return results[cse].flex.find(x => x.J === strat.J && x.Lm === 1)
+  return results[cse].flex.find(x => x.J === strat.J && x.Lm === strat.Lm)
+  // if (type === 'single') return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === 1)
+  // return results.flex.find(x => x.r === p.r && x.rec === p.rec && x.σ === p.σ && x.J === strat.J && x.Lm === strat.Lm)
 }
 
 export function findFamilyFromFlex(flex, tradespace) {
@@ -527,6 +554,9 @@ export function scenarioData(s) {
   return { r: s.r, rec: s.rec, σ: s.σ }
 }
 
+export function isEmpty(obj) {
+  return Object.keys(obj).length === 0
+}
 
 export function openResultsFile(evt, updateResults) {
 
@@ -538,7 +568,7 @@ export function openResultsFile(evt, updateResults) {
       // let resultFile = JSON.parse(e.target.result)
       const { inputs, results } = decompressResults(e.target.result)
 
-      updateResults(results, inputs)
+      updateResults(results, inputs, 'results')
 
       // console.log(decompressResults(json.inputs, json.results))
       // updateResults(decompressResults(json.inputs, json.results), json.inputs)
@@ -658,11 +688,11 @@ export function averageResultsRange(inputs, results, output, rangeParam) {
   const scenarioTSB = generateTSB(inputs)
   const scenarios = generateTradespace(scenarioTSB.scenarios)
 
-  const { t } = generateParamArrays({[rangeParam]: scenarioTSB.scenarios[rangeParam]})
+  const { t } = generateParamArrays({ [rangeParam]: scenarioTSB.scenarios[rangeParam] })
   const pArr = t[0] // Param Array
   const resultArr = []
 
-  for(let p of pArr) {
+  for (let p of pArr) {
 
     let total = 0
     const filteredScenarios = scenarios.filter(x => x[rangeParam] === p)
@@ -673,12 +703,12 @@ export function averageResultsRange(inputs, results, output, rangeParam) {
       const xFlexM = findxFlex(s, results, 'multi')
       total += calcResult(xTrad, xFlexS, xFlexM, output)
     }
-  
-    resultArr.push({input: p, output: total / filteredScenarios.length}) 
+
+    resultArr.push({ input: p, output: total / filteredScenarios.length })
   }
 
   copyAvgResultsRangeToClipboard(resultArr)
-  
+
   return resultArr
 }
 

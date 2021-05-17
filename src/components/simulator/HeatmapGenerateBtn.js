@@ -1,7 +1,7 @@
 import React from 'react'
 import { Center } from '../blocks/blockAPI'
 import { invertParam } from '../../config'
-import { calcResult, findxFlex, matchConstantsFlex, matchConstantsTrad, parseConst } from '../../utils/utilGeneral'
+import { calcResult, caseStr, findFamilyFromFlex, findFlex, findxFlex, findxTrad, matchConstantsFlex, matchConstantsTrad, parseConst } from '../../utils/utilGeneral'
 
 export default function HeatmapGenerateBtn({ results, params, paramRanges, setHMResults }) {
 
@@ -41,31 +41,31 @@ export default function HeatmapGenerateBtn({ results, params, paramRanges, setHM
 
     function getStrats(i1, i2) {
 
+      const cse = caseStr({
+        r: config.con.r,
+        rec: config.con.rec,
+        σ: config.con.σ,
+        [v1param]: v1range[i1],
+        [v2param]: v2range[i2]
+      })
+
+      const strat = {
+        J: config.con.J,
+        Lm: config.con.Lm,
+        [v1param]: v1range[i1],
+        [v2param]: v2range[i2]
+      }
+
       function getFlexStrat(type) {
         if (config.con.optimal === 'true') {
-          const scen = {
-            r: config.con.r,
-            rec: config.con.rec,
-            σ: config.con.σ,
-            [v1param]: v1range[i1],
-            [v2param]: v2range[i2]
-          }
-          return findxFlex(scen, results, type)
+          return findxFlex(cse, results, type)
         }
-        return results.flex.find(x =>
-          x[v1param] === v1range[i1] &&
-          x[v2param] === v2range[i2] &&
-          matchConstantsFlex(x, params.var, config.con, type)
-        )
+        return findFlex(cse, strat, results, type)
       }
 
       const flexS = getFlexStrat('single')
-
       const flexM = getFlexStrat('multi')
-
-      const xTrad = results.xTrad.find(x =>
-        matchConstantsTrad(x, params.var, config.con)
-      )
+      const xTrad = findxTrad(cse, results)
 
       return { flexS, flexM, xTrad }
     }

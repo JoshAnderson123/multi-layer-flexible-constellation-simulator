@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { generateArchitectures } from '../../utils/architectures'
 import { createSimulation } from '../../utils/simulation'
 import { calcResultParamRanges } from '../../utils/tradespace'
-import { findFlex, findxFlex, findxTrad, formatArcsPF, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
+import { caseStr, findFlex, findxFlex, findxTrad, formatArcsPF, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
 import { Center, Flex, Grid, Img } from '../blocks/blockAPI'
 import { DropdownConst } from '../simulator/Dropdown'
 import { VP_LEFT, VP_RIGHT } from '../../config'
@@ -24,7 +24,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
 
   if (visuResults) drawVisualisationGraph(visuResults, simulation.current, currentStep, canvasSize)
 
-  function getScenarioParams() {
+  function getCaseParams() {
     return {
       r: parseConst('#c-r'),
       rec: parseConst('#c-rec'),
@@ -38,8 +38,8 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
 
   function generateScenario() {
 
-    const scen = getScenarioParams()
-    simulation.current = createSimulation(simulationInputs(scen))
+    const cseParams = getCaseParams()
+    simulation.current = createSimulation(simulationInputs(cseParams))
     runScenario()
   }
 
@@ -47,12 +47,13 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
 
     if (!simulation.current) return
 
-    const scen = getScenarioParams()
+    const cseParams = getCaseParams()
+    const cse = caseStr({r: cseParams.r, rec: cseParams.rec, σ: cseParams.σ})
     const stratType = parseConst('#c-type', 'string')
     const optimum = parseConst('#c-opt', 'string')
 
     if (stratType === 'xTrad') {
-      const xTrad = findxTrad(scen, results)
+      const xTrad = findxTrad(cse, results)
       const fixedParams = { D: xTrad.D.toString(), P: xTrad.P.toString(), f: xTrad.f.toString(), I: xTrad.I.toString() }
       const flexParams = { e: xTrad.e.toString(), a: xTrad.a.toString() }
       const family = generateArchitectures(fixedParams, flexParams)[0]
@@ -76,12 +77,12 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
       }
 
       if (stratType === 'flexS') {
-        const flexS = (optimum === 'true') ? findxFlex(scen, results, 'single') : findFlex(scen, strat, results, 'single')
+        const flexS = (optimum === 'true') ? findxFlex(cse, results, 'single') : findFlex(cse, strat, results, 'single')
         runScen(flexS)
       }
 
       if (stratType === 'flexM') {
-        const flexM = (optimum === 'true') ? findxFlex(scen, results, 'multi') : findFlex(scen, strat, results, 'multi')
+        const flexM = (optimum === 'true') ? findxFlex(cse, results, 'multi') : findFlex(cse, strat, results, 'multi')
         runScen(flexM)
       }
     }

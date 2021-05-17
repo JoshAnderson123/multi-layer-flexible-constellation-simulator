@@ -7,7 +7,7 @@ import PanelTopBar from './PanelTopBar'
 const feildTC = '2.5fr 4fr 1fr'
 const indent = '10px'
 
-export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050px' h='900px'
+export default function SetupPanel({ setPanel, inputs, updateResults }) { //w='1050px' h='900px'
 
   const [viewArc, setViewArc] = useState(true)
   const [viewSce, setViewSce] = useState(true)
@@ -21,18 +21,18 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
       <Center cn='w100 font-title2 ct1 bc2-2 bor-field rig' h='100px'>Multi-Layer Flexible Constellation Simulator</Center>
       <Flex f='FSV' p='0 20%' cn='ct1 w100 font-grid rel bor-field grow ovy-a'>
         <AttrContainer
-          title='Architectures' type='architecture' inputs={inputs} setInputs={setInputs}
+          title='Architectures' type='architecture' inputs={inputs} updateResults={updateResults}
           view={viewArc} setView={setViewArc}
         />
         <AttrContainer
-          title='Strategies' type='strategy' inputs={inputs} setInputs={setInputs}
+          title='Strategies' type='strategy' inputs={inputs} updateResults={updateResults}
           view={viewStr} setView={setViewStr}
         />
         <AttrContainer
-          title='Cases' type='scenario' inputs={inputs} setInputs={setInputs}
+          title='Cases' type='scenario' inputs={inputs} updateResults={updateResults}
           view={viewSce} setView={setViewSce}
         />
-        <ScenarioConfig view={viewSce} inputs={inputs} setInputs={setInputs} />
+        <ScenarioConfig view={viewSce} inputs={inputs} updateResults={updateResults} />
         <Flex f='FS' cn='w100 font-grid-small ct1' mt='30px'>{`Total Unit Simulations: ${calcTotalUnitSimulations(inputs)}`}</Flex>
       </Flex>
       <Center cn='w100 font-title2 c-d1 bc2-2 rig' h='100px'>
@@ -45,7 +45,7 @@ export default function SetupPanel({ setPanel, inputs, setInputs }) { //w='1050p
 }
 
 
-function AttrContainer({ title, type, inputs, setInputs, view, setView }) { // tt = total text
+function AttrContainer({ title, type, inputs, updateResults, view, setView }) { // tt = total text
 
   function renderTable() {
 
@@ -54,14 +54,14 @@ function AttrContainer({ title, type, inputs, setInputs, view, setView }) { // t
     if (type === 'scenario') return [
       <Header />,
       ['r', 'rec', 'σ'].map(param =>
-        <Record key={param} type={type} param={param} range={inputs[type][param]} setInputs={setInputs} />
+        <Record inputs={inputs} key={param} type={type} param={param} range={inputs[type][param]} updateResults={updateResults} />
       )
     ]
 
     return [
       <Header />,
       Object.keys(inputs[type]).map(param =>
-        <Record key={param} type={type} param={param} range={inputs[type][param]} setInputs={setInputs} />
+        <Record inputs={inputs} key={param} type={type} param={param} range={inputs[type][param]} updateResults={updateResults} />
       )
     ]
   }
@@ -96,16 +96,19 @@ function Header() {
   )
 }
 
-function Record({ type, param, range, setInputs }) {
+function Record({ type, param, range, inputs, updateResults }) {
 
   const entries = calcEntries(range)
 
   function updateRange(e) {
-    setInputs(prevInputs => {
-      const newInputs = deepCopy(prevInputs)
-      newInputs[type][param] = e.target.value
-      return newInputs
-    })
+    const newInputs = deepCopy(inputs)
+    newInputs[type][param] = e.target.value
+    updateResults(null, newInputs)
+    // updateResults(prevInputs => {
+    //   const newInputs = deepCopy(prevInputs)
+    //   newInputs[type][param] = e.target.value
+    //   return newInputs
+    // })
   }
 
   return (
@@ -117,37 +120,36 @@ function Record({ type, param, range, setInputs }) {
   )
 }
 
-function ScenarioConfig({ view, inputs, setInputs }) {
+function ScenarioConfig({ view, inputs, updateResults }) {
   if (view) return (
     <>
       <Center cn='w100 bc2-3' h='1px' mt='10px'></Center>
-      <Flex f='FB' cn='w100' pt='10px'>
-        <ScenarioConfigItem setInputs={setInputs} param='S' value={inputs.scenario['S']} />
-        <ScenarioConfigItem setInputs={setInputs} param='start' value={inputs.scenario['start']} />
-        <ScenarioConfigItem setInputs={setInputs} param='μ' value={inputs.scenario['μ']} />
-        <ScenarioConfigItem setInputs={setInputs} param='capMax' value={inputs.scenario['capMax']} />
-      </Flex>
+      <Grid gtc='repeat(4, 1fr)' gg='5px' cn='w100 ov-h grid-adjust' pt='10px'>
+        <ScenarioConfigItem inputs={inputs} updateResults={updateResults} param='S' value={inputs.scenario['S']} />
+        <ScenarioConfigItem inputs={inputs} updateResults={updateResults} param='start' value={inputs.scenario['start']} />
+        <ScenarioConfigItem inputs={inputs} updateResults={updateResults} param='μ' value={inputs.scenario['μ']} />
+        <ScenarioConfigItem inputs={inputs} updateResults={updateResults} param='capMax' value={inputs.scenario['capMax']} />
+        <ScenarioConfigItem inputs={inputs} updateResults={updateResults} param='optimal' value={inputs.scenario['optimal']} />
+      </Grid>
     </>
   )
 
   return null
 }
 
-function ScenarioConfigItem({ param, value, setInputs, ...props }) {
+function ScenarioConfigItem({ param, value, inputs, updateResults, ...props }) {
 
   function updateValue(e) {
-    setInputs(prevInputs => {
-      const newInputs = deepCopy(prevInputs)
-      newInputs.scenario[param] = e.target.value
-      return newInputs
-    })
+    const newInputs = deepCopy(inputs)
+    newInputs.scenario[param] = e.target.value
+    updateResults(null, newInputs)
   }
 
   return (
-    <Flex f='FB' h='28px' cn='rel' {...props} >
-      <Flex f='FS' pl='10px' w='160px' cn='bc2-2 h100'>{formatParam[param]}</Flex>
-      <Input value={value} cn='font-grid b-none bc2-4 h100' w='120px' pl={indent} onChange={e => updateValue(e)} />
-    </Flex>
+    <Grid gtc='1fr 1fr' cn='rel' h='40px'>
+      <Flex f='FS' pl='10px' cn='rel bc2-2 h100'>{formatParam[param]}</Flex>
+      <Input value={value} cn='font-grid b-none bc2-4 f' pl={indent} onChange={e => updateValue(e)} />
+    </Grid>
   )
 }
 
