@@ -1,28 +1,44 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VP_TOP, VP_RIGHT, VP_BOTTOM, VP_LEFT, layerColors, defaultSim, formatParam, HG_OFF } from '../config'
 import { calcBoundaries } from './architectures';
-import { drawRotatedText, findxFlex, findxTrad, floor, formatCap } from './utilGeneral';
+import { caseStr, drawRotatedText, findxFlex, findxTrad, floor, formatCap } from './utilGeneral';
 
-export function drawArchTradespace(inputs, results, params) { //tradespace, inputs, xTrad, xFlexS, xFlexM
+export function drawArchTradespace(inputs, results, tradespace, params) { //tradespace, inputs, xTrad, xFlexS, xFlexM
 
-  const tradespace = results.tradespace
   const boundaries = calcBoundaries(tradespace)
   const c = document.getElementById("main-canvas");
   const ctx = c.getContext("2d");
 
-  const xTrad = findxTrad(params, results)
-  const xFlexS = findxFlex(params, results, 'single')
-  const xFlexM = findxFlex(params, results, 'multi')
+  console.log(tradespace, boundaries)
+
+  const xTrad = findxTrad(caseStr(params), results)
+  const xFlexS = findxFlex(caseStr(params), results, 'single')
+  const xFlexM = findxFlex(caseStr(params), results, 'multi')
 
   drawGraphBackground(ctx, c);
 
   ////-- Datapoints --////
-  drawArchitectures(ctx, tradespace, boundaries, { opacity: 0.35, radius: 1.5 });
-  drawCap(ctx, inputs.capMax, boundaries);
-  drawCap(ctx, inputs.start, boundaries);
-  drawFamilyLines(ctx, tradespace, inputs, boundaries, { opacity: 1, lineWidth: 2 });
-  drawXFlex(ctx, tradespace, xFlexS, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,0,1)' })
-  drawXFlex(ctx, tradespace, xFlexM, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,255,1)' })
-  drawXTrad(ctx, xTrad, boundaries, { radius: 7 })
+  drawArchitectures(ctx, tradespace, boundaries, { opacity: 0.5, radius: 1.5 });
+  // drawCap(ctx, inputs.capMax, boundaries);
+  // drawCap(ctx, inputs.start, boundaries);
+  drawFamilyLines(ctx, tradespace, inputs, boundaries, { opacity: 0.8, lineWidth: 2 });
+  // drawXFlex(ctx, tradespace, xFlexS, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,0,1)' })
+  // drawXFlex(ctx, tradespace, xFlexM, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,255,1)' })
+
+  // drawXFlex(ctx, tradespace, { D: 2, P: 200, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,255,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 250, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,240,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 300, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,220,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 350, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,200,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 400, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,180,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 450, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,160,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 500, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,140,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 550, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,120,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 600, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,100,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 650, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,80,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 700, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,60,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 750, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,40,0,1)' })
+  // drawXFlex(ctx, tradespace, { D: 2, P: 800, f: 30, I: 'Mesh' }, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,20,0,1)' })
+
+  // drawXTrad(ctx, xTrad, boundaries, { radius: 7 })
 
   ////-- Labelling --////
   drawAxis(ctx);
@@ -46,7 +62,7 @@ function drawCap(ctx, capMax, boundaries) {
 
 function drawGraphBackground(ctx, c) {
   ctx.clearRect(0, 0, c.width, c.height);
-  ctx.fillStyle = `rgba(255,255,255,0.4)`;
+  ctx.fillStyle = `rgba(255,255,255,1)`;
   ctx.fillRect(CP_LEFT, 0, GRAPH_WIDTH + CP_RIGHT, GRAPH_HEIGHT);
 }
 
@@ -73,7 +89,7 @@ function drawFamilyLines(ctx, tradespace, inputs, boundaries, config) {
     ctx.strokeStyle = `rgba(128, 128, 128,0.5)`
     const arcStart = fam.cfgs[0]
     const arcEnd = fam.cfgs[fam.cfgs.length - 1]
-    if (arcStart.cap < inputs.start || arcEnd.cap < inputs.capMax) ctx.strokeStyle = `rgba(255, 128, 128,0.5)`
+    // if (arcStart.cap < inputs.start || arcEnd.cap < inputs.capMax) ctx.strokeStyle = `rgba(255, 128, 128,0.5)`
 
     //// Segmentng Colouring
     // ctx.strokeStyle = `rgba(0,0,0,0.5)`;
@@ -117,7 +133,7 @@ function highlightFamily(tradespace, ctx, boundaries) {
 
 
 function drawAxis(ctx) {
-  ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
   ctx.lineWidth = 1;
   //// X
   ctx.beginPath();
@@ -134,8 +150,8 @@ function drawAxis(ctx) {
 
 function drawTicks(ctx, boundaries) {
   //// Draw Ticks
-  ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-  ctx.fillStyle = `rgba(0,0,0,1)`;
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.fillStyle = `rgba(255,255,255,1)`;
   ctx.lineWidth = 4;
   const lineLen = 6;
   ctx.font = "20px Arial";
@@ -163,7 +179,7 @@ function drawTicks(ctx, boundaries) {
 
 
 function drawLabels(ctx, xLabel, yLabel) {
-  ctx.fillStyle = `rgba(0,0,0,1)`;
+  ctx.fillStyle = `rgba(255,255,255,1)`;
   ctx.font = "20px Arial";
   //// X Label
   ctx.fillText(xLabel[0], CP_LEFT + (GRAPH_WIDTH / 2) - 60 + xLabel[1], CANVAS_HEIGHT - 25 + xLabel[2]);
@@ -650,8 +666,8 @@ export function drawHeatmap(rows, cols, HMResults, scale) {
     // ctx.fillStyle = `hsl(0,100%,100%)`
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        ctx.fillStyle = scale(HMResults.data[r*cols + c]).hex()
-        ctx.fillRect(ga(c*colLen, 'x'), ga(r*rowLen, 'y'), sharpenC(colLen), sharpenC(rowLen))
+        ctx.fillStyle = scale(HMResults.data[r * cols + c]).hex()
+        ctx.fillRect(ga(c * colLen, 'x'), ga(r * rowLen, 'y'), sharpenC(colLen), sharpenC(rowLen))
       }
     }
   }
@@ -664,16 +680,16 @@ export function drawHeatmap(rows, cols, HMResults, scale) {
     let textInt = 1
 
     if (cols > 10) {
-      textInt = floor(cols/10)
+      textInt = floor(cols / 10)
     }
 
     for (let c = 0; c < cols; c++) {
-      const x = off.l + c*colLen
-      if(c%textInt === 0) {
+      const x = off.l + c * colLen
+      if (c % textInt === 0) {
         drawLine(x, off.t, x, off.t - TICK_LEN)
         ctx.fillText(HMResults.config.var.v1.range[c], x, off.t - TICK_LEN - 5);
-      } else {        
-        drawLine(x, off.t, x, off.t - (TICK_LEN*0.6))
+      } else {
+        drawLine(x, off.t, x, off.t - (TICK_LEN * 0.6))
       }
     }
   }
@@ -685,16 +701,16 @@ export function drawHeatmap(rows, cols, HMResults, scale) {
     ctx.textAlign = "right";
     let textInt = 1
     if (rows > 10) {
-      textInt = floor(rows/10)
+      textInt = floor(rows / 10)
     }
 
     for (let r = 0; r < rows; r++) {
-      const y = off.t + r*rowLen
-      if(r%textInt === 0) {
-        drawLine(off.l, y, off.l-TICK_LEN, y)
+      const y = off.t + r * rowLen
+      if (r % textInt === 0) {
+        drawLine(off.l, y, off.l - TICK_LEN, y)
         ctx.fillText(HMResults.config.var.v2.range[r], off.l - TICK_LEN - 6, y + TICK_LEN - 5);
-      } else {        
-        drawLine(off.l, y, off.l-(TICK_LEN*0.6), y)
+      } else {
+        drawLine(off.l, y, off.l - (TICK_LEN * 0.6), y)
       }
     }
   }
@@ -704,8 +720,8 @@ export function drawHeatmap(rows, cols, HMResults, scale) {
     ctx.strokeStyle = textColor
     ctx.fillStyle = textColor
 
-    ctx.fillText(formatParam[HMResults.config.var.v1.param], off.l+(G_WIDTH/2), off.t-50);
-    drawRotatedText(ctx, off.l-50, off.t+(G_HEIGHT/2), formatParam[HMResults.config.var.v2.param], -Math.PI / 2);
+    ctx.fillText(formatParam[HMResults.config.var.v1.param], off.l + (G_WIDTH / 2), off.t - 50);
+    drawRotatedText(ctx, off.l - 50, off.t + (G_HEIGHT / 2), formatParam[HMResults.config.var.v2.param], -Math.PI / 2);
     // drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
   }
 }

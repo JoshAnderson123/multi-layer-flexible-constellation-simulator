@@ -45,8 +45,11 @@ export function calcMasses({ D, P, I }) {
   const md = 260      // Default Dry Mass, kg
   const dw = 0.95     // Proportion of total mass that is dry mass
   const mp_i = 0.3    // Proportion of dry mass thats Dry Instrument Mass, %
-  const mp_b = 0.7    // Proportion of dry mass thats Dry Buss Mass, %
-  const m = md * ((1 - mp_i) + (mp_i * (P / Pd))) * ((D / Dd) ** 2) * ISLMass[I] // Dry Mass
+  const mp_b = 1-mp_i // Proportion of dry mass thats Dry Buss Mass, %
+
+  // const m = md * (mp_b + (mp_i * (P / Pd))) * ((D / Dd) ** 2) * ISLMass[I] // Dry Mass - calculation 1
+  const m = md * (P / Pd) * ((D / Dd) ** 2) * ISLMass[I] // Dry Mass - calculation 2
+
   const tm = m / dw   // Total mass
   const mb = m * mp_b // Bus Dry Mass
 

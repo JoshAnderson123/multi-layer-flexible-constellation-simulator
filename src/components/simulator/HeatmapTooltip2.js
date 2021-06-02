@@ -35,7 +35,7 @@ export default function HeatmapTooltip2({ selectedCell, HMResults, rows, cols })
       </Center>
       <Center
         l={`${x+colLen}px`} t={`${y+rowLen}px`} p='5px'
-        cn='abs c-d1 bc-l1 font-small pe-none'
+        cn='abs c-d1 bc-l1 font-small pe-none' z='1000'
       >
         {formatHMItem(HMResults.config.output, HMResults.data[selectedCell.r*cols + selectedCell.c])}
       </Center>

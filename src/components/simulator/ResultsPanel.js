@@ -30,6 +30,8 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
     const xFlexS = findxFlex(caseStr(cse), results, 'single')
     const xFlexM = findxFlex(caseStr(cse), results, 'multi')
 
+    console.log(xTrad, xFlexS, xFlexM)
+
     return (
       <Center cn='h100 grow bc2-2 ct1'>
         <Flex f='FSVS' cn='font-result-data ws-pre' ml='-30px' >

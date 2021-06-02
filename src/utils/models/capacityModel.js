@@ -22,14 +22,12 @@ function toRatio(A) { return 10 ** (A / 10) } // Converts dB to number
  */
 export function calcDataRate(D, f, P, e, a) {
 
-  const C = 2000                                       // Number of Simultaneous Carriers per satellite (Benchmarked using Starlink)
   const k = -228.6                                     // Boltzmann Constant
 
   const ηTx = 0.6                                      // Tx Antenna Efficiency
-  const GTx = 20.4 + 2 * dB(f) + 2 * dB(D) + dB(ηTx)   // Tx Antenna Gain (dBi)
+  const GTx = 2 * dB(f) + 2 * dB(D) + dB(ηTx) - 12.6   // Tx Antenna Gain (dBi)
   const LlTx = 5                                       // Tx Backoff and Line Loss (dB)
-  const EIRPs = dB(P) + GTx - LlTx                     // EIRP, Satellite (dBW)
-  const EIRPc = EIRPs - dB(C)                          // EIRP per carrier (dBW)
+  const EIRP = dB(P) + GTx - LlTx                      // EIRP, Satellite (dBW)
 
   const dist = calculatePathDistance(e, a) / 1000      // Propagation Range (km)
   const Ls = 92.45 + 2 * dB(dist) + 2 * dB(f)          // Space Loss (dB)
@@ -40,15 +38,17 @@ export function calcDataRate(D, f, P, e, a) {
 
   const ηRx = 0.55                                     // Rx Antenna Efficiency
   const GRx = 20.4 + 2 * dB(f) + 2 * dB(DRx) + dB(ηRx) // Rx Antenna Gain (dBi)
-  const LlRx = 2                                       // Rx Line Loss (dB)
-
+  const LlRx = 2    
+  
+  
   const T = 27.3                                       // System Noise Temperature (dB-K)
   const G_T = GRx - T                                  // Rx Antenna Gain-to-noise temperature (dB/K)
+  console.log('G_T', G_T)// Rx Line Loss (dB)
 
   const L = Lp + LlRx                                  // Total Loss (dB)
   const Eb_N0 = 12.3                                   // Required Nb/N0
 
-  return toRatio(EIRPc + G_T - L - k - Eb_N0) / 1e6    // Mbps
+  return toRatio(EIRP + G_T - L - k - Eb_N0) / 1e6     // Mbps
 }
 
 

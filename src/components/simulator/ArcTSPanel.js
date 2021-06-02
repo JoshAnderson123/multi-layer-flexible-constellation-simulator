@@ -1,23 +1,37 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { drawArchTradespace } from '../../utils/draw'
 import { Center, Flex } from '../blocks/blockAPI'
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../config'
 import PanelTopBar from './PanelTopBar'
 import Grid from '../blocks/Grid'
 import { DropdownConst } from './Dropdown'
-import { calcResultParamRanges } from '../../utils/tradespace'
-import { parseConst, simulationInputs } from '../../utils/utilGeneral'
+import { calcResultParamRanges, generateTradespace } from '../../utils/tradespace'
+import { generateTSB, parseConst, simulationInputs } from '../../utils/utilGeneral'
+import { generateArchitectures } from '../../utils/architectures'
+import { createSimulation } from '../../utils/simulation'
+import { filterParetoOptimal } from '../../utils/optimise'
 
 export default function ArcTSPanel({ inputs, results, setPanel }) {
 
   const [params, setParams] = useState()
   const paramRanges = calcResultParamRanges(inputs)
+  const ts = useRef()
+  
+  useEffect(() => {
+    const tsb = generateTSB(inputs)
+    const architectures = generateArchitectures(tsb.arcsFixed, tsb.arcsFlex)
+    const scenarios = generateTradespace(tsb.scenarios)
+    const simulation = createSimulation(simulationInputs(scenarios[0]))
+    const arcsTrad = simulation.runTrad(architectures)
+    ts.current = filterParetoOptimal(arcsTrad)
+  }, [])
 
   useEffect(() => {
     if (params) {
       drawArchTradespace(
         simulationInputs(inputs.scenario),
         results,
+        ts.current,
         params
       )
     }
