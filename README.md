@@ -6,7 +6,8 @@ This repository stores the codebase for the Multi-Layer Staged Deployment Decisi
 The above image displays screenshots of the MLSD-DDS in action. Spiralling clockwise from top left corner: visualisation suite, results panel, architectural tradespace explorer, configuration panel, constellation visual comparisons, heatmap generator, and loading screen.
 
 ## Live Demo
-A live demo can be accessed [here](https://multi-layer-staged-deployment-dss.netlify.app/)
+A live demo can be accessed [here](https://multi-layer-staged-deployment-dss.netlify.app/).
+The MLDS-DDS is in alpha testing at the moment, and will require considerably more error handling and usability testing before being ready for wider use. Be weary of crashes.
 
 ## Project Implementation
 The project is built in JavaScript, React.js, Three.js, React Three Fiber, and SASS.
