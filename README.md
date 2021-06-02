@@ -10,9 +10,9 @@ A live demo can be accessed [here](https://multi-layer-staged-deployment-dss.net
 The project is built in JavaScript and ReactJS
 
 ## File Structure
-The project has two root directories: `/public` and `/src`
-`/public` stores publically accessible data, including icon images and index.html
-`/src` contains all of the source code; the 'brains' of the decision support system
+The project has two root directories: `/public` and `/src`.
+* `/public` stores publically accessible data, including icon images and index.html
+* `/src` contains all of the source code; the 'brains' of the decision support system
 The following directories are found in `/src`:
 
 ### `/components`
