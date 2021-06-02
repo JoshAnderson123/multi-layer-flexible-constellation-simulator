@@ -6,9 +6,6 @@ import { Center } from './components/blocks/blockAPI'
 import RestartBtn from './components/simulator/RestartBtn';
 import PanelContainer from './components/simulator/PanelContainer';
 
-//// DISABLE THIS WHENEVER POSSIBLE
-console.warn = console.error = () => { };
-
 function App() {
 
   const [panel, setPanel] = useState('setup')
