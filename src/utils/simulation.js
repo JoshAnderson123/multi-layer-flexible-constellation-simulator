@@ -1,6 +1,12 @@
+/*
+--- Simulation.js ---
+Created: 12th April 2021
+Description: Holds the code for
+*/
+
 import { stochasticScenarios, deterministicScenario } from './models/demandModel'
 import { calcLaunchCost } from './models/costModel'
-import { calcFirstArc, ceil, copyConfig, copyFam, formatxFlex, ln, max, round } from './utilGeneral'
+import { calcFirstArc, ceil, copyConfig, copyFam, formatxFlex, ln, max, min, round } from './utilGeneral'
 import { b } from './models/costModel'
 
 /**
@@ -30,7 +36,9 @@ export function createSimulation(inputs, arcs) {
   simulation.runTradVisual = xTrad => runTradVisual(xTrad)
   simulation.runFlex = (tradespace, flexStratInputs) => runFlex(tradespace, flexStratInputs)
   simulation.runFlexVisual = (family, flexStratInputs) => runFlexVisual(family, flexStratInputs)
+  simulation.findXFull = (family) => findXFull(family)
   simulation.expectedDemand = () => detFinal
+  simulation.calcEvolutions = (J, fam, Lm) => calcEvolutions(J, fam, Lm)
   simulation.L = L
 
   return simulation
@@ -38,12 +46,12 @@ export function createSimulation(inputs, arcs) {
   // LOCAL FUNCTIONS
 
   /**
- * Runs the fixed strategy for each architecture and calculates LCC
- * @param {object} tradespace Tradespace of architectures
- * @param {object} inputs Simulation input parameters
- * @return {object} Tradespace with LCC for each architecture 
- */
-  function runTrad(ts) { // Don't use deepCopy (Currently an error)
+  * Runs the fixed strategy for each architecture and calculates LCC
+  * @param {object} tradespace Tradespace of architectures
+  * @param {object} inputs Simulation input parameters
+  * @return {object} Tradespace with LCC for each architecture 
+  */
+  function runTrad(ts) {
 
     const tsf = []
     const dt = T / steps // # Steps / year
@@ -62,7 +70,6 @@ export function createSimulation(inputs, arcs) {
 
     return tsf
   }
-
 
 
   function runTradVisual(xTrad) {
@@ -90,7 +97,6 @@ export function createSimulation(inputs, arcs) {
   function runFlex(tradespace, flexStratInputs) {
 
     const { J, Lm } = flexStratInputs // Extract flexible strategy inputs
-    const tsFlexMulti = [] // Initialsie tradespace of families using the multi-layered flexible strategy
     const dt = T / steps // Calculate Time step (years)
     let xFlex = { ELCC: Infinity }
 
@@ -175,7 +181,6 @@ export function createSimulation(inputs, arcs) {
     const maxReconsPerSat = calcMaxRecons(evolutions, Lm)
 
     let curEvl = 0 // Current evolution
-    // const maxReconsPerSat = calcMaxExpReconsSat(J, Lm, family) // Calculate the expected number of reconfigurations for a single satellite
 
     const results = {
       demand: testScenario,
@@ -233,6 +238,68 @@ export function createSimulation(inputs, arcs) {
   }
 
 
+  function runFullFact(family, evolutions) {
+
+
+    const maxReconsPerSat = calcMaxRecons(evolutions, 1)
+
+    const OC = {} // Initialise Ongoing & Mantenance cost cache
+    function combinedOC(n) { // Setup optimised combined OC function for this family
+      if (n in OC) { return OC[n] }
+      if (n in L) { OC[n] = family.recCosts['LOOS'] * L[n] * dt; return OC[n] }
+      L[n] = n ** b
+      OC[n] = family.recCosts['LOOS'] * L[n] * dt
+      return OC[n]
+    }
+
+    let ELCC = 0 // Initialise expected LCC
+
+    for (let demand of scenarios) { // Run through every demand scenario
+
+      let curEvl = 0 // Current evolution
+      let layers = [evolutions[0].id] // Initialise list of current architecture IDs to ID of the starting arch (the architecture with the smallest capacity that is greater than the starting demand)
+      let LCC = startCosts(family, layers, maxReconsPerSat) // Initialise the LCC array
+      let totalN = calcTotalN(layers, family)
+      let prevEvlT = 1
+      let totalCap = calcTotalCap(layers, family) // Calculate the total capacity of all layers
+
+      for (let t = 1; t < demand.length; t++) { // Run through the scenario
+
+        if (demand[t] > totalCap && totalCap < capMax) { // If constellation should evolve
+
+          const OC = combinedOC(totalN)
+          for (let i = prevEvlT; i < t; i++) LCC += OC * discountArr[i]
+
+          curEvl++
+          
+          const evl = evolutions[curEvl]
+          let evlCost
+          if (evl.type === 'NL') {
+            evlCost = evolutionNLCosts2(family, evl.id, layers, maxReconsPerSat)
+            layers.push(evl.id)
+          } else {
+            evlCost = evolutionReconMultiCosts(family, evl.from, evl.to, layers, maxReconsPerSat)
+            layers[evl.layer] = evl.to
+          }
+          LCC += (evlCost + OC) * discountArr[t]
+
+          totalCap = calcTotalCap(layers, family)
+          totalN = calcTotalN(layers, family)
+          prevEvlT = t + 1
+        }
+      }
+
+      const OC = combinedOC(totalN)
+      for (let i = prevEvlT; i < steps + 1; i++) LCC += OC * discountArr[i]
+      ELCC += LCC
+    }
+
+    ELCC /= scenarios.length // Divide by number of scenarios to get the expected LCC
+
+    return ELCC
+  }
+
+
   function maxCapacityOf(family) {
     return family.cfgs[family.cfgs.length - 1].cap
   }
@@ -241,6 +308,7 @@ export function createSimulation(inputs, arcs) {
   function calcEvolutions(J, fam, Lm) { // Calculate the maximum expected reconfigurations in a demand scenario
 
     const f = calcFirstArc(start, fam.cfgs, J)
+    // const f = calcFirstArc(fam.cfgs[0].cap, fam.cfgs, J)
     const layers = [f.id]
     const evolutions = [{ type: 'init', layer: 0, id: f.id }]
     let totalCap = calcTC()
@@ -307,6 +375,44 @@ export function createSimulation(inputs, arcs) {
   }
 
 
+  function findXFull(family) {
+
+    const { id: fId } = calcFirstArc(start, family.cfgs)
+    const { id: mId } = calcFirstArc(capMax, family.cfgs)
+    const cfgLen = family.cfgs.length
+    const smLen = mId - fId
+    const bgLen = cfgLen - mId
+    let count = 0
+
+    let xFull = { ELCC: Infinity, arcs: null }
+
+    for (let j = 1; j < 2 ** bgLen; j++) { // i = combination of configurations < capMax
+      for (let i = 0; i < 2 ** smLen; i++) { // j = combination of configurations >= capMax
+        count++
+        const comboSm = i.toString(2).padStart(smLen, '0')
+        const comboBg = j.toString(2).padStart(bgLen, '0')
+        const combo = (comboSm + comboBg).padStart(cfgLen, '0')
+        const path = []
+        for (let s = 0; s < combo.length; s++) {
+          if (combo[s] === '1') {
+            if (path.length === 0) {
+              path.push({ type: 'init', layer: 0, id: s })
+            } else {
+              path.push({ type: 'recon', layer: 0, id: s, from: path[path.length - 1].id, to: s })
+            }
+          }
+        }
+        const ELCC = runFullFact(family, path)
+        if (ELCC < xFull.ELCC) xFull = { ELCC, path }
+      }
+    }
+
+    console.log('count', count)
+
+    return xFull
+  }
+
+
   function calcRequiredCap(totalCap, J) {
     if (totalCap * J > capMax) return capMax - totalCap
     return totalCap * (J - 1)
@@ -334,12 +440,12 @@ export function createSimulation(inputs, arcs) {
   }
 
   /**
- * Calculates the cost to evolve between two architectures 
- * @param {object} family Family of architectures
- * @param {object} a Curent architecture ID
- * @param {object} b ID of next arhitecture to evolve to
- * @return {number} Cost ($M)
- */
+  * Calculates the cost to evolve between two architectures 
+  * @param {object} family Family of architectures
+  * @param {object} a Curent architecture ID
+  * @param {object} b ID of next arhitecture to evolve to
+  * @return {number} Cost ($M)
+  */
   function evolutionNLCosts2(family, newArcID, layers, maxReconsPerSat) {
 
     const newArc = family.cfgs[newArcID]
@@ -350,12 +456,12 @@ export function createSimulation(inputs, arcs) {
 
 
   /**
-* Calculates the cost to evolve between two architectures 
-* @param {object} family Family of architectures
-* @param {object} a Curent architecture ID
-* @param {object} b ID of next arhitecture to evolve to
-* @return {number} Cost ($M)
-*/
+  * Calculates the cost to evolve between two architectures 
+  * @param {object} family Family of architectures
+  * @param {object} a Curent architecture ID
+  * @param {object} b ID of next arhitecture to evolve to
+  * @return {number} Cost ($M)
+  */
   function evolutionReconMultiCosts(family, a, b, layers, maxReconsPerSat) {
 
     const currArch = family.cfgs[a]

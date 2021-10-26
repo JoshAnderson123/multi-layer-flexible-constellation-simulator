@@ -23,7 +23,7 @@ export default function ArcTSPanel({ inputs, results, setPanel }) {
     const scenarios = generateTradespace(tsb.scenarios)
     const simulation = createSimulation(simulationInputs(scenarios[0]))
     const arcsTrad = simulation.runTrad(architectures)
-    ts.current = filterParetoOptimal(arcsTrad)
+    ts.current = arcsTrad //filterParetoOptimal(arcsTrad)
   }, [])
 
   useEffect(() => {

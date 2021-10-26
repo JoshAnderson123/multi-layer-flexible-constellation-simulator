@@ -70,8 +70,13 @@ export function downloadJson(jsonObj, exportName) {
 
 export function ln(x) { return Math.log(x) }
 export function max(...x) { return Math.max(...x) }
+export function min(...x) { return Math.min(...x) }
 export function ceil(x) { return Math.ceil(x) }
 export function floor(x) { return Math.floor(x) }
+export function asin(x) { return Math.asin(x) }
+export function sin(x) { return Math.sin(x) }
+export function cos(x) { return Math.cos(x) }
+export const PI = Math.PI
 
 
 //// Console.log functions without directory tag on the side (Cleaner) ////
@@ -585,7 +590,6 @@ export function openResultsFile(evt, updateResults) {
   return reader.readAsText(file);
 }
 
-
 export function minMax(l, x, u) {
   if (x < l) return l
   if (x > u) return u
@@ -634,7 +638,7 @@ export function count(arr, v) {
   return arr.reduce((t, c) => c === v ? t + 1 : t, 0)
 }
 
-export function calcFirstArc(start, cfgs, J) {
+export function calcFirstArc(start, cfgs, J=1) {
   for (let i = 0; i < cfgs.length; i++) {
     if (cfgs[i].cap > start * J) return { id: i, cap: cfgs[i].cap }
   }

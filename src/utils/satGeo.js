@@ -1,47 +1,20 @@
 import { EARTH_RADIUS } from '../config'
+import { asin, sin, cos, PI } from '../utils/utilGeneral'
 
 export function degToRad(deg) { return (deg * Math.PI) / 180 }
 
 
 /**
- * Calculates a satellites half angle based on MEA, altitude and Earths radius 
- * @param {number} MEA Minimum elevation angle of receiver from horizon to satellite (deg)
- * @param {number} altitude Altitude of constellation above Earths surface (km)
- * @param {number} radius Radius of Earth (km)
- * @return {object} Satellite half angle (rad)
- */
-export function calculateHalfAngle(MEA, altitude, radius) {
-  const h = radius + altitude
-  return Math.asin((radius * Math.sin(degToRad(MEA) + (Math.PI / 2))) / h)
-}
-
-
-/**
  * Calculates a satellites footprint angle based on MEA, altitude and Earths radius 
- * @param {number} MEA Minimum elevation angle of receiver from horizon to satellite (deg)
- * @param {number} altitude Altitude of constellation above Earths surface (km)
- * @param {number} radius Radius of Earth (km)
- * @return {object} Satellite footprint: {z: ditance from footprint to center of earth, r: radius of footprint}
+ * @param {number} e Minimum elevation angle of receiver from horizon to satellite (deg)
+ * @param {number} a Altitude of constellation above Earths surface (km)
+ * @param {number} R Radius of Earth (km)
+ * @return {object} Satellite footprint: {r: radius of footprint, z: ditance from footprint to center of earth}
  */
-export function calculateFootprint(MEA, altitude, radius) {
-
-  const h = radius + altitude                             // Height of satellite above earth
-  const angle = calculateHalfAngle(MEA, altitude, radius) // Half angle of satellite to receiver
-  const stretch = Math.tan(angle)                         // Ratio of altitude to footprint radius
-  const offset = -(h * stretch)                           // Offset of satellite (h) in cone equation
-
-  // Quadratic formula - used to find radii of circles where cone intersects sphere
-  const A = stretch ** 2 + 1
-  const B = 2 * stretch * offset
-  const C = offset ** 2 - radius ** 2
-  const desc = B ** 2 - (4 * A * C)
-
-  if (desc < 0) return null // If there is no intersection, return null
-
-  const z = (-B + Math.sqrt(desc)) / (2 * A)    // Distance from footprint to center of earth. Closest intersection is always the positive quadrtic solution
-  const r = Math.sqrt((radius ** 2) - (z ** 2)) // Radius of footprint
-
-  return { z, r }
+export function calculateFootprint(e, a, R) {
+  const η = asin((R / (R + a)) * cos(degToRad(e))) // Satellite half angle / Nadir angle
+  const γ = PI / 2 - degToRad(e) - η                         // Earth Central Angle
+  return { r: R * sin(γ), z: R * cos(γ) }
 }
 
 
@@ -52,7 +25,6 @@ export function calculateFootprint(MEA, altitude, radius) {
  * @return {number} Ratio of beam radius to footprint radius
  */
 export function calculateBeamToFootprintRatio(beamAngle, footprintAngle) {
-
   return Math.tan(degToRad(beamAngle)) / Math.tan(degToRad(footprintAngle))
 }
 

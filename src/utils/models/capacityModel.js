@@ -40,10 +40,8 @@ export function calcDataRate(D, f, P, e, a) {
   const GRx = 20.4 + 2 * dB(f) + 2 * dB(DRx) + dB(ηRx) // Rx Antenna Gain (dBi)
   const LlRx = 2    
   
-  
   const T = 27.3                                       // System Noise Temperature (dB-K)
   const G_T = GRx - T                                  // Rx Antenna Gain-to-noise temperature (dB/K)
-  console.log('G_T', G_T)// Rx Line Loss (dB)
 
   const L = Lp + LlRx                                  // Total Loss (dB)
   const Eb_N0 = 12.3                                   // Required Nb/N0

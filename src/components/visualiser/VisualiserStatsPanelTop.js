@@ -22,7 +22,7 @@ export default function VisualiserStatsPanelTop({ currentStep, visuResults, view
       </Flex>
 
       <Flex f='FSVS' mt='10px'>
-        {visuResults.layers[currentStep].map((v, i) => <VisualiserLayerStat number={i} details={v} viewLayers={viewLayers} setViewLayers={setViewLayers} />)}
+        {visuResults.layers[currentStep].map((v, i) => <VisualiserLayerStat number={i} key={i} details={v} viewLayers={viewLayers} setViewLayers={setViewLayers} />)}
       </Flex>
 
     </Flex>

@@ -4,7 +4,7 @@ import { drawArchTradespace } from '../../utils/draw'
 import { filterParetoOptimal, optimiseFlexM, optimiseFlexS, optimiseTrad } from '../../utils/optimise'
 import { createSimulation } from '../../utils/simulation'
 import { generateTradespace } from '../../utils/tradespace'
-import { dollars, formatArcsPF, formatTime, generateTSB, logBig, logNS, simulationInputs, scenarioData } from '../../utils/utilGeneral'
+import { dollars, formatArcsPF, formatTime, generateTSB, logBig, logNS, simulationInputs, scenarioData, findxTrad, findxFlex, caseStr } from '../../utils/utilGeneral'
 import { Center, Flex } from '../blocks/blockAPI'
 
 export default function RunningPanel({ inputs, updateResults }) {
@@ -51,6 +51,9 @@ export default function RunningPanel({ inputs, updateResults }) {
         const xTrad = optimiseTrad(arcsTrad, simulation.current.inputs.capMax)
         resultsTemp.current.xTrad.push({ ...xTrad, ...scenarioData(scenarios.current[cur.scen]) })
         caseFTemp.current = []
+
+        // const xFull = simulation.current.findXFull(architectures.current[0])
+        // console.log('xFull:', dollars(xFull.ELCC), xFull.path)
       }
 
       // Run simulation
@@ -81,7 +84,26 @@ export default function RunningPanel({ inputs, updateResults }) {
       logNS('========================')
       logNS(`Elapsed Time: ${formatTime(calcElapsedTime())}`)
       logNS('---------------')
-      logNS(resultsTemp.current)
+      // logNS(resultsTemp.current)
+
+      // const { r, reconCost, σ } = simulation.current.inputs
+      // const cse = { r, rec: reconCost, σ }
+      // logNS('cse', cse)
+      // logNS(resultsTemp.current)
+
+      // const xTrad = resultsTemp.current.xTrad
+      // const xFlexS = resultsTemp.current.flex.filter(x => x.Lm === 1)[0]
+      // let xFlexM = resultsTemp.current.flex.filter(x => x.Lm > 1)[0]
+      // if (!xFlexM) xFlexM = xFlexS
+      // logNS('xTrad', xTrad)
+
+      // logNS('xFlexS', xFlexS)
+      // const evlS = simulation.current.calcEvolutions(xFlexS.J, arcsParetoFam.current[0], xFlexS.Lm)
+      // logNS('evlS', evlS)
+
+      // logNS('xFlexM', xFlexM)
+      // const evlM = simulation.current.calcEvolutions(xFlexM.J, arcsParetoFam.current[0], xFlexM.Lm)
+      // logNS('evlM', evlM)
 
       updateResults(resultsTemp.current, null, 'results')
     }

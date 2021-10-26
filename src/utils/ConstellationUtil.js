@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import BufferGeometryUtils from './BufferGeometryUtils'
 import { render, ORBIT_RESOLUTION, FOOTPRINT_RESOLUTION, FOOTPRINT_SCALE_FACTOR, SCALE_FACTOR, EARTH_RADIUS_SCALED, OVERLAPPING_FOOTPRINT_FACTOR } from '../config'
+import { asin, sin, cos, PI } from '../utils/utilGeneral'
 
 
 export function degToRad(deg) { return (deg * Math.PI) / 180 }
@@ -79,7 +80,21 @@ export function generateOrbitsGeometry2(h, inc, planes, lonRange) {
 
 ///// FOOTPRINTS /////
 
-export function calculateFootprint(MEA, altitude, radius) {
+/**
+ * Calculates a satellites footprint angle based on MEA, altitude and Earths radius 
+ * @param {number} e Minimum elevation angle of receiver from horizon to satellite (deg)
+ * @param {number} a Altitude of constellation above Earths surface (km)
+ * @param {number} R Radius of Earth (km)
+ * @return {object} Satellite footprint: {r: radius of footprint, z: ditance from footprint to center of earth}
+ */
+export function calculateFootprint(e, a, R) {
+  const η = asin((R / (R+a)) * cos(degToRad(e))) // Satellite half angle / Nadir angle
+  const γ = (PI / 2) - degToRad(e) - η                     // Earth Central Angle
+  return { r: R * sin(γ), z: R * cos(γ) }
+}
+
+
+export function calculateFootprintOld(MEA, altitude, radius) {
   // MEA = minimum elevetion angle
   // Altitude = altitude of satellite above earths surface
   // Radius = radius of earth

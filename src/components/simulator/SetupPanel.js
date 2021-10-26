@@ -3,7 +3,6 @@ import { Center, Grid, Flex, Input, Img } from '../blocks/blockAPI'
 import { commas, deepCopy, formatTime, parseRange } from '../../utils/utilGeneral'
 import { formatParam } from '../../config'
 import PanelTopBar from './PanelTopBar'
-import { calcDataRate } from '../../utils/models/capacityModel'
 
 const feildTC = '2.5fr 4fr 1fr'
 const indent = '10px'
@@ -15,7 +14,6 @@ export default function SetupPanel({ setPanel, inputs, updateResults }) { //w='1
   const [viewStr, setViewStr] = useState(true)
 
   const canRun = calcCanRun(inputs)
-  console.log(calcDataRate(3.5, 13.5, 2200, 40, 1150))
 
   return (
     <Flex f='FSV' w='100%' h='100%' cn='rel bc2'>
@@ -106,11 +104,6 @@ function Record({ type, param, range, inputs, updateResults }) {
     const newInputs = deepCopy(inputs)
     newInputs[type][param] = e.target.value
     updateResults(null, newInputs)
-    // updateResults(prevInputs => {
-    //   const newInputs = deepCopy(prevInputs)
-    //   newInputs[type][param] = e.target.value
-    //   return newInputs
-    // })
   }
 
   return (

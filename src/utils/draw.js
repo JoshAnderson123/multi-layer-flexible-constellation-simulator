@@ -1,4 +1,4 @@
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VP_TOP, VP_RIGHT, VP_BOTTOM, VP_LEFT, layerColors, defaultSim, formatParam, HG_OFF } from '../config'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GRAPH_WIDTH, GRAPH_HEIGHT, CP_TOP, CP_RIGHT, CP_BOTTOM, CP_LEFT, VisGraph, VisGraph2, layerColors, defaultSim, formatParam, HG_OFF } from '../config'
 import { calcBoundaries } from './architectures';
 import { caseStr, drawRotatedText, findxFlex, findxTrad, floor, formatCap } from './utilGeneral';
 
@@ -18,9 +18,9 @@ export function drawArchTradespace(inputs, results, tradespace, params) { //trad
 
   ////-- Datapoints --////
   drawArchitectures(ctx, tradespace, boundaries, { opacity: 0.5, radius: 1.5 });
-  // drawCap(ctx, inputs.capMax, boundaries);
-  // drawCap(ctx, inputs.start, boundaries);
-  drawFamilyLines(ctx, tradespace, inputs, boundaries, { opacity: 0.8, lineWidth: 2 });
+  // drawCap(ctx, inputs.capMax, boundaries, 'rgba(255,100,0,1)');
+  // drawCap(ctx, inputs.start, boundaries, 'rgba(0,100,255,1)');
+  // drawFamilyLines(ctx, tradespace, inputs, boundaries, { opacity: 0.8, lineWidth: 2 });
   // drawXFlex(ctx, tradespace, xFlexS, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,0,1)' })
   // drawXFlex(ctx, tradespace, xFlexM, boundaries, { lineWidth: 2, radius: 2.5, color: 'rgba(0,0,255,1)' })
 
@@ -49,8 +49,8 @@ export function drawArchTradespace(inputs, results, tradespace, params) { //trad
 }
 
 
-function drawCap(ctx, capMax, boundaries) {
-  ctx.strokeStyle = 'rgba(0,100,255,1)';
+function drawCap(ctx, capMax, boundaries, style='rgba(0,100,255,1)') {
+  ctx.strokeStyle = style
   ctx.lineWidth = 1;
   const { x, y } = calcPositions({ cap: capMax, LCC: boundaries.minCost }, boundaries);
   ctx.beginPath();
@@ -348,8 +348,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
   const V_CANVAS_WIDTH = canvasSize.w
   const V_CANVAS_HEIGHT = canvasSize.h
-  const V_GRAPH_WIDTH = V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT
-  const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM
+  const V_GRAPH_WIDTH = V_CANVAS_WIDTH - VisGraph.LEFT - VisGraph.RIGHT
+  const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VisGraph.TOP - VisGraph.BOTTOM
 
   const demandStroke = 'rgba(255, 50, 50, 1)'
   const capacityStroke = 'rgba(180, 180, 180, 1)' // 100,100,100
@@ -362,7 +362,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   ctx.fillStyle = `hsl(0,0%,35%)`
   ctx.fillRect(0, 0, c.width, c.height)
   ctx.fillStyle = `hsl(0,0%,20%)`
-  ctx.fillRect(VP_LEFT, VP_TOP, V_CANVAS_WIDTH - VP_LEFT - VP_RIGHT, V_CANVAS_HEIGHT - VP_TOP - VP_BOTTOM)
+  ctx.fillRect(VisGraph.LEFT, VisGraph.TOP, V_CANVAS_WIDTH - VisGraph.LEFT - VisGraph.RIGHT, V_CANVAS_HEIGHT - VisGraph.TOP - VisGraph.BOTTOM)
 
   const SCALE_FACTOR = 1
   const MAX_DEMAND = Math.max(...results.demand)
@@ -395,11 +395,11 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   }
 
   function calcY(v) {
-    return sharpen(V_CANVAS_HEIGHT - VP_BOTTOM - ((v / MAX_DC) * V_GRAPH_HEIGHT * SCALE_FACTOR))
+    return sharpen(V_CANVAS_HEIGHT - VisGraph.BOTTOM - ((v / MAX_DC) * V_GRAPH_HEIGHT * SCALE_FACTOR))
   }
 
   function calcX(v) {
-    return sharpen(VP_LEFT + v)
+    return sharpen(VisGraph.LEFT + v)
   }
 
   function drawEvolution(color, type, x, y) {
@@ -472,14 +472,14 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
   function drawCapMax() {
     ctx.strokeStyle = capMaxStroke
     ctx.lineWidth = 1;
-    drawLine(calcX(0), calcY(simulation.inputs.capMax), V_CANVAS_WIDTH - VP_RIGHT, calcY(simulation.inputs.capMax))
+    drawLine(calcX(0), calcY(simulation.inputs.capMax), V_CANVAS_WIDTH - VisGraph.RIGHT, calcY(simulation.inputs.capMax))
   }
 
   function drawVAxis() {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
     ctx.lineWidth = 1;
-    drawLine(calcX(0), calcY(0), V_CANVAS_WIDTH - VP_RIGHT, calcY(0))
-    drawLine(calcX(-1), calcY(0), calcX(-1), VP_TOP)
+    drawLine(calcX(0), calcY(0), V_CANVAS_WIDTH - VisGraph.RIGHT, calcY(0))
+    drawLine(calcX(-1), calcY(0), calcX(-1), VisGraph.TOP)
   }
 
   function drawEvolutions() {
@@ -512,7 +512,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
 
 
     const x = calcX(currentStep * STEP)
-    const y = VP_TOP + V_GRAPH_HEIGHT
+    const y = VisGraph.TOP + V_GRAPH_HEIGHT
     drawLine(x, y, x, y - V_GRAPH_HEIGHT)
     drawTriangle(x + 1, y, 6)
   }
@@ -527,7 +527,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     ctx.lineWidth = 1;
 
     for (let i = 0; i < defaultSim.T; i++) {
-      const x = VP_LEFT + (i * TICK_STEP)
+      const x = VisGraph.LEFT + (i * TICK_STEP)
       const y = calcY(0)
       drawLine(x, y, x, y + TICK_LEN)
       ctx.fillText(2021 + i, x, y + TICK_LEN + 13);
@@ -544,7 +544,7 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     ctx.lineWidth = 1;
 
     for (let cap = 0; cap < MAX_DC; cap += tickInterval) {
-      const x = VP_LEFT
+      const x = VisGraph.LEFT
       const y = calcY(cap)
       drawLine(x, y, x - TICK_LEN, y)
       ctx.fillText(formatCap(cap), x - TICK_LEN - 4, y + 3);
@@ -557,9 +557,9 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     ctx.strokeStyle = textColor
     ctx.fillStyle = textColor
 
-    ctx.fillText('Year', VP_LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 50);
+    ctx.fillText('Year', VisGraph.LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 50);
 
-    drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
+    drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VisGraph.TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
   }
 
   function drawLegend() {
@@ -569,8 +569,8 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
     ctx.lineWidth = 1;
 
-    const ox = VP_LEFT + 10
-    const oy = VP_TOP + 10
+    const ox = VisGraph.LEFT + 10
+    const oy = VisGraph.TOP + 10
 
     ctx.fillRect(sharpen(ox), sharpen(oy), 215, 60)
     ctx.strokeRect(sharpen(ox), sharpen(oy), 215, 60)
@@ -606,6 +606,286 @@ export function drawVisualisationGraph(results, simulation, currentStep, canvasS
       const eox = 100
       const eoy = 18
       const es = 25 // Line Spacing
+
+      drawEvolution('#dddddd', 'NL', ox + eox, oy + eoy)
+      ctx.fillStyle = textColor
+      ctx.fillText('New Layer', ox + eox + 17, oy + eoy + 5);
+
+      drawEvolution('#dddddd', 'recon', ox + eox, oy + eoy + es)
+      ctx.fillStyle = textColor
+      ctx.fillText('Reconfiguration', ox + eox + 17, oy + eoy + es + 5);
+
+    }
+  }
+}
+
+export function drawVisualisationGraph2(results, simulation, currentStep, canvasSize) {
+
+  const c = document.getElementById("visu-canvas")
+  const ctx = c.getContext("2d")
+
+  const V_CANVAS_WIDTH = canvasSize.w
+  const V_CANVAS_HEIGHT = canvasSize.h
+  const V_GRAPH_WIDTH = V_CANVAS_WIDTH - VisGraph2.LEFT - VisGraph2.RIGHT
+  const V_GRAPH_HEIGHT = V_CANVAS_HEIGHT - VisGraph2.TOP - VisGraph2.BOTTOM
+
+  const demandStroke = 'rgba(255, 50, 50, 1)'
+  const capacityStroke = 'rgba(180, 180, 180, 0.5)' // 100,100,100
+  const capMaxStroke = 'rgba(0, 0, 255, 1)'
+  const textColor = 'hsl(0,0%,80%)'
+
+  const evlRad = 7//5
+
+  ctx.clearRect(0, 0, c.width, c.height)
+  ctx.fillStyle = `hsl(0,0%,35%)`
+  ctx.fillRect(0, 0, c.width, c.height)
+  ctx.fillStyle = `hsl(0,0%,0%)`
+  ctx.fillRect(VisGraph2.LEFT, VisGraph2.TOP, V_CANVAS_WIDTH - VisGraph2.LEFT - VisGraph2.RIGHT, V_CANVAS_HEIGHT - VisGraph2.TOP - VisGraph2.BOTTOM)
+
+  const SCALE_FACTOR = 1
+  const MAX_DEMAND = Math.max(...results.demand)
+  const MAX_CAPACITY = Math.max(...results.capacity)
+  const MAX_DC = Math.max(MAX_DEMAND, MAX_CAPACITY, simulation.inputs.capMax * 1.05)
+  const STEP = V_GRAPH_WIDTH / simulation.inputs.steps
+  const TICK_LEN = 10//7
+
+  drawAllScenarios()
+  drawDemandLine()
+  drawCapacityLine()
+  // drawCapMax()
+  drawVAxis()
+  drawXLabels()
+  drawYLabels()
+  drawTitles()
+  drawEvolutions()
+  // drawStep()
+  // drawLegend()
+
+  function sharpen(v) {
+    return Math.round(v) + 0.5
+  }
+
+  function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(sharpen(x1), sharpen(y1));
+    ctx.lineTo(sharpen(x2), sharpen(y2));
+    ctx.stroke();
+  }
+
+  function calcY(v) {
+    return sharpen(V_CANVAS_HEIGHT - VisGraph2.BOTTOM - ((v / MAX_DC) * V_GRAPH_HEIGHT * SCALE_FACTOR))
+  }
+
+  function calcX(v) {
+    return sharpen(VisGraph2.LEFT + v)
+  }
+
+  function drawEvolution(color, type, x, y) {
+    ctx.fillStyle = color
+    const evolutionShaddow = 'rgba(0,0,0,0.4)'
+
+    if (type === 'NL') {
+      ctx.fillStyle = evolutionShaddow
+      ctx.fillRect(sharpen(x - (evlRad + 5)), sharpen(y - (evlRad + 5)), (evlRad + 5) * 2, (evlRad + 5) * 2)
+      ctx.fillStyle = color
+      ctx.fillRect(sharpen(x - (evlRad + 1)), sharpen(y - (evlRad + 1)), (evlRad + 1) * 2, (evlRad + 1) * 2)
+    } else {
+
+      ctx.fillStyle = evolutionShaddow
+      ctx.beginPath();
+      ctx.arc(x, y, evlRad + 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = color
+      ctx.beginPath();
+      ctx.arc(x, y, evlRad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // ctx.lineWidth = type === 'NL' ? NLWidth+1 : 2
+    // ctx.strokeStyle = 'rgba(255,255,255,0.4)'
+    // ctx.stroke();
+    // ctx.lineWidth = type === 'NL' ? NLWidth : 1
+    // ctx.strokeStyle = color
+    // ctx.stroke();
+    // ctx.strokeStyle = 'rgba(0,0,0,0.4)'
+    // ctx.stroke();
+  }
+
+  function drawAllScenarios() {
+    ctx.strokeStyle = 'rgba(255, 50, 50, 0.1)'
+    ctx.lineWidth = 1.5;
+
+    for (let s = 0; s < simulation.stochasticScenarios.length; s++) {
+      ctx.beginPath();
+      ctx.moveTo(calcX(0), calcY(0));
+      for (let d = 1; d <= simulation.inputs.steps; d++) {
+        ctx.lineTo(calcX(STEP * d), calcY(simulation.stochasticScenarios[s][d]))
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawDemandLine() {
+    ctx.strokeStyle = demandStroke
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(calcX(0), calcY(0));
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      ctx.lineTo(calcX(STEP * d), calcY(results.demand[d]))
+    }
+    ctx.stroke();
+  }
+
+  function drawCapacityLine() {
+    ctx.strokeStyle = capacityStroke
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(calcX(0), calcY(0));
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      ctx.lineTo(calcX(STEP * d), calcY(results.capacity[d]));
+    }
+    ctx.stroke();
+  }
+
+  function drawCapMax() {
+    ctx.strokeStyle = capMaxStroke
+    ctx.lineWidth = 3;
+    drawLine(calcX(0), calcY(simulation.inputs.capMax), V_CANVAS_WIDTH - VisGraph2.RIGHT, calcY(simulation.inputs.capMax))
+  }
+
+  function drawVAxis() {
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    ctx.lineWidth = 1;
+    drawLine(calcX(0), calcY(0)-1, V_CANVAS_WIDTH - VisGraph2.RIGHT, calcY(0)-1)
+    drawLine(calcX(-1), calcY(0), calcX(-1), VisGraph2.TOP)
+  }
+
+  function drawEvolutions() {
+
+    // Draw initial deployment
+    drawEvolution(`#${layerColors[0]}`, 'NL', calcX(0), calcY(0))
+
+    for (let d = 1; d <= simulation.inputs.steps; d++) {
+      if (results.evolutions[d]?.type) {
+        const color = `#${layerColors[results.evolutions[d].layer]}`
+        drawEvolution(color, results.evolutions[d].type, calcX(STEP * d), calcY(results.capacity[d]))
+      }
+    }
+  }
+
+  function drawStep() {
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+    ctx.lineWidth = 1;
+
+    function drawTriangle(x, y, size) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + size, y + size * 1.5);
+      ctx.lineTo(x - size, y + size * 1.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+
+    const x = calcX(currentStep * STEP)
+    const y = VisGraph2.TOP + V_GRAPH_HEIGHT
+    drawLine(x, y, x, y - V_GRAPH_HEIGHT)
+    drawTriangle(x + 1, y, 6)
+  }
+
+  function drawXLabels() {
+
+    const TICK_STEP = V_GRAPH_WIDTH / defaultSim.T
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < defaultSim.T; i++) {
+      const x = VisGraph2.LEFT + (i * TICK_STEP)
+      const y = calcY(0)
+      drawLine(x, y, x, y + TICK_LEN)
+      ctx.fillText(2021 + i, x, y + TICK_LEN + 18);
+    }
+  }
+
+  function drawYLabels() {
+
+    const tickInterval = 5e6
+    ctx.font = "16px Arial";
+    ctx.textAlign = "right";
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+    ctx.lineWidth = 1;
+
+    for (let cap = 0; cap < MAX_DC; cap += tickInterval) {
+      const x = VisGraph2.LEFT
+      const y = calcY(cap)
+      drawLine(x, y, x - TICK_LEN, y)
+      ctx.fillText(formatCap(cap), x - TICK_LEN - 4, y + 6);
+    }
+  }
+
+  function drawTitles() {
+    ctx.font = "28px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = textColor
+    ctx.fillStyle = textColor
+
+    ctx.fillText('Year', VisGraph2.LEFT + (V_GRAPH_WIDTH / 2), calcY(0) + TICK_LEN + 70);
+
+    drawRotatedText(ctx, calcX(0) - TICK_LEN - 65, VisGraph2.TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
+  }
+
+  function drawLegend() {
+    ctx.font = "14px Arial";
+    ctx.textAlign = "left";
+    ctx.fillStyle = 'hsl(0,0%,40%)'
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    ctx.lineWidth = 1;
+
+    const w = 265
+    const h = 90
+    const ox = V_CANVAS_WIDTH - VisGraph2.RIGHT - w - 15//VisGraph2.LEFT + 10
+    const oy = V_CANVAS_HEIGHT - VisGraph2.BOTTOM - h - 15//VisGraph2.TOP + 10
+
+    ctx.fillRect(sharpen(ox), sharpen(oy), w, h)
+    ctx.strokeRect(sharpen(ox), sharpen(oy), w, h)
+
+    drawLegendLines()
+    drawLegendEvolutions()
+
+    function drawLegendLines() {
+      const lox = 15
+      const loy = 19
+      const ls = 25 // Line Spacing
+      const lw = 40 // Line width
+
+      ctx.fillStyle = textColor
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = demandStroke
+      drawLine(ox + lox, oy + loy + ls * 0, ox + lw, oy + loy + ls * 0)
+      ctx.fillText('demand', ox + lox + lw - 2, oy + loy + ls * 0 + 5);
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = capacityStroke
+      drawLine(ox + lox, oy + loy + ls * 1, ox + lw, oy + loy + ls * 1)
+      ctx.fillText('capacity', ox + lox + lw - 2, oy + loy + ls * 1 + 5);
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = capMaxStroke
+      drawLine(ox + lox, oy + loy + ls * 2, ox + lw, oy + loy + ls * 2)
+      ctx.fillText('capMax', ox + lox + lw - 2, oy + loy + ls * 2 + 5);
+    }
+
+    function drawLegendEvolutions() {
+      const eox = 130
+      const eoy = 28
+      const es = 35 // Line Spacing
 
       drawEvolution('#dddddd', 'NL', ox + eox, oy + eoy)
       ctx.fillStyle = textColor
@@ -722,6 +1002,6 @@ export function drawHeatmap(rows, cols, HMResults, scale) {
 
     ctx.fillText(formatParam[HMResults.config.var.v1.param], off.l + (G_WIDTH / 2), off.t - 50);
     drawRotatedText(ctx, off.l - 50, off.t + (G_HEIGHT / 2), formatParam[HMResults.config.var.v2.param], -Math.PI / 2);
-    // drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VP_TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
+    // drawRotatedText(ctx, calcX(0) - TICK_LEN - 45, VisGraph.TOP + (V_GRAPH_HEIGHT / 2), 'Subscribers', -Math.PI / 2)
   }
 }

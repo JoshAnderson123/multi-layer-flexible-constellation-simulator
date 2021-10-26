@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { calcResultParamRanges } from '../../utils/tradespace'
-import { calcResultFormatted, caseStr, copyResultsToClipboard, findxFlex, findxTrad, isEmpty, openResultsFile, parseConst } from '../../utils/utilGeneral'
+import { createSimulation } from '../../utils/simulation'
+import { calcResultParamRanges, generateTradespace } from '../../utils/tradespace'
+import { calcResultFormatted, caseStr, copyResultsToClipboard, findxFlex, findxTrad, generateTSB, isEmpty, openResultsFile, parseConst, simulationInputs } from '../../utils/utilGeneral'
 import { Center, File, Flex, Grid, Img, Input } from '../blocks/blockAPI'
 import { DropdownConst } from './Dropdown'
 import PanelTopBar from './PanelTopBar'
@@ -28,9 +29,7 @@ export default function ResultsPanel({ setPanel, inputs, results, updateResults 
 
     const xTrad = findxTrad(caseStr(cse), results)
     const xFlexS = findxFlex(caseStr(cse), results, 'single')
-    const xFlexM = findxFlex(caseStr(cse), results, 'multi')
-
-    console.log(xTrad, xFlexS, xFlexM)
+    const xFlexM = findxFlex(caseStr(cse), results, 'multi')   
 
     return (
       <Center cn='h100 grow bc2-2 ct1'>

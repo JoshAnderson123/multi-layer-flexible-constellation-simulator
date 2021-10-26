@@ -26,26 +26,26 @@ export const defaultInputs_2 = {
 
 export const defaultInputs = { // OG
   scenario: {
-    r: '0|0.1|0.5',  // '0.1|0.1|0.6'
-    rec: '0.2', // '0.2,0.5
-    σ: '0.2', // '0.1|0.1|0.5'
-    S: '10',
+    r: '0.5',// '0|0.1|0.5',  // '0.1|0.1|0.6'
+    rec: '0.1', // '0.2,0.5
+    σ: '0.2', //'0.2', // '0.1|0.1|0.5'
+    S: '100',// '10',
     μ: '0.77119',
     start: '50000',
     capMax: '15000000',
     optimal: 'true'
   },
   strategy: {
-    J: '1.5', // 1.5|0.5|5
+    J: '1.2,1.5,2,3,4,5,6,7,8,9,10',// '1.5', // 1.5|0.5|5
     Lm: '2', // 2|1|5
   },
   architecture: {
-    D: '2|0.5|4',
-    P: '200|400|2200',
-    f: '15,50',
-    I: 'None,Mesh,Ring',
-    a: '400|50|1600',
-    e: '15|15|60',
+    D: '3',// '2|0.5|4',
+    P: '400',// '200|400|2200',
+    f: '50',// '15,50',
+    I: 'Mesh',// 'None,Mesh,Ring',
+    a: '400|200|1800',// '400|50|1600',
+    e: '45',// '15|15|60',
   }
 }
 
@@ -178,10 +178,22 @@ export const GRAPH_WIDTH = CANVAS_WIDTH - CP_LEFT - CP_RIGHT;
 export const GRAPH_HEIGHT = CANVAS_HEIGHT - CP_TOP - CP_BOTTOM;
 
 //// VISUALISER GRAPH ////
-export const VP_TOP = 0;
-export const VP_RIGHT = 0;
-export const VP_BOTTOM = 80;
-export const VP_LEFT = 80;
+export const VisGraph = {
+  TOP: 0,
+  RIGHT: 0,
+  BOTTOM: 80,
+  LEFT: 80
+}
+export const VisGraph2 = {
+  TOP: 20,
+  RIGHT: 20,
+  BOTTOM: 120,
+  LEFT: 120
+}
+// export const VP_TOP = 0;
+// export const VP_RIGHT = 0;
+// export const VP_BOTTOM = 80;
+// export const VP_LEFT = 80;
 
 //// HEATMAP GRID /////
 export const HG_OFF = {

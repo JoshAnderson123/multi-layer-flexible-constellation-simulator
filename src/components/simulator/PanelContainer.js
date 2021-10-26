@@ -7,7 +7,7 @@ import RunningPanel from './RunningPanel'
 import SetupPanel from './SetupPanel'
 import VisualiserPanel from '../visualiser/VisualiserPanel'
 
-export default function PanelContainer({ panel, setPanel, inputs, results, updateResults }) {
+export default function PanelContainer({ panel, setPanel, inputs, results, updateResults, keyboardListener }) {
 
   function hidePopup(e) {
     if (e.target !== e.currentTarget) return
@@ -21,7 +21,7 @@ export default function PanelContainer({ panel, setPanel, inputs, results, updat
       {panel === 'results' ? <ResultsPanel setPanel={setPanel} inputs={inputs} results={results} updateResults={updateResults} /> : null}
       {panel === 'heatmap' ? <HeatmapPanel setPanel={setPanel} inputs={inputs} results={results} /> : null}
       {panel === 'arcts' ? <ArcTSPanel setPanel={setPanel} inputs={inputs} results={results} /> : null}
-      {panel === 'visualise' ? <VisualiserPanel inputs={inputs} setPanel={setPanel} results={results} /> : null}
+      {panel === 'visualise' ? <VisualiserPanel inputs={inputs} setPanel={setPanel} results={results} keyboardListener={keyboardListener} /> : null}
     </Center>
   )
 }

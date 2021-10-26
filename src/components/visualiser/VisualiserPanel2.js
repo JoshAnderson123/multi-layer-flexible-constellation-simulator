@@ -4,13 +4,13 @@ import React, { useEffect, useRef, useState } from 'react'
 import { defaultSim, render } from '../../config'
 import { Center, Flex } from '../blocks/blockAPI'
 import PanelTopBar from '../simulator/PanelTopBar'
-import VisualiserSideBar from './VisualiserSideBar'
+import VisualiserSideBar2 from './VisualiserSideBar2'
 import VisualiserStatsPanelTop from './VisualiserStatsPanelTop'
 import VisualiserStatsPanelBottom from './VisualiserStatsPanelBottom'
 
 export const RenderContext = React.createContext()
 
-export default function VisualiserPanel({ setPanel, inputs, results, keyboardListener }) {
+export default function VisualiserPanel2({ setPanel, inputs, results, keyboardListener }) {
 
   let [renderCtx, setRenderCtx] = useState(render)
   let [constellation, setConstellation] = useState([])
@@ -19,7 +19,15 @@ export default function VisualiserPanel({ setPanel, inputs, results, keyboardLis
   let [currentStep, setCurrentStep] = useState(defaultSim.steps - 1)
   let [visuResults, setVisuResults] = useState()
   let [viewLayers, setViewLayers] = useState([true, true, true, true, true])
+  let [viewSidebar, setViewSidebar] = useState(true)
   let prevConstellation = useRef(0)
+
+  useEffect(() => {
+    keyboardListener.current.addEvent({
+      conditions: ['Space'],
+      action: () => setViewSidebar(prev => !prev)
+    })
+  }, [])
 
   useEffect(() => {
 
@@ -64,19 +72,20 @@ export default function VisualiserPanel({ setPanel, inputs, results, keyboardLis
   return (
     <div className="page-container">
       <Flex f='FSV' w='100%' h='100%' bc='#ddd' cn='rel bsh3 c-d1'>
-        <PanelTopBar setPanel={setPanel} />
+        {/* <PanelTopBar setPanel={setPanel} /> */}
         <Flex f='FB' cn='w100 grow rel'>
-          <VisualiserSideBar
-            inputs={inputs} results={results} visuResults={visuResults} updateVisuResults={updateVisuResults}
-            playing={playing} setPlaying={setPlaying} currentStep={currentStep} updateStep={updateStep}
-            playspeed={playspeed} setPlayspeed={setPlayspeed} keyboardListener={keyboardListener}
-          />
-          <Center cn='h100 rel grow'>
-            <Visualiser renderCtx={renderCtx} constellation={constellation} viewLayers={viewLayers} />
-            {visuResults ? <VisualiserStatsPanelTop visuResults={visuResults} currentStep={currentStep} viewLayers={viewLayers} setViewLayers={setViewLayers} /> : null}
-            {visuResults ? <VisualiserStatsPanelBottom visuResults={visuResults} /> : null}
+          <Center cn='f abs'>
+            <Visualiser renderCtx={renderCtx} constellation={constellation} viewLayers={viewLayers} viewSidebar={viewSidebar} />
+            {/* {visuResults ? <VisualiserStatsPanelTop visuResults={visuResults} currentStep={currentStep} viewLayers={viewLayers} setViewLayers={setViewLayers} /> : null} */}
+            {/* {visuResults ? <VisualiserStatsPanelBottom visuResults={visuResults} /> : null} */}
             <VisualiserOptions renderCtx={renderCtx} setRenderCtx={setRenderCtx} />
           </Center>
+          <VisualiserSideBar2
+            inputs={inputs} results={results} visuResults={visuResults} updateVisuResults={updateVisuResults}
+            playing={playing} setPlaying={setPlaying} currentStep={currentStep} updateStep={updateStep}
+            playspeed={playspeed} setPlayspeed={setPlayspeed} setPanel={setPanel} viewSidebar={viewSidebar}
+            keyboardListener={keyboardListener}
+          />
         </Flex>
       </Flex>
       {/* <div className="top-bar"></div> */}

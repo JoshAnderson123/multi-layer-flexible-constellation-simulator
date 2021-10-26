@@ -5,12 +5,12 @@ import { calcResultParamRanges } from '../../utils/tradespace'
 import { caseStr, findFlex, findxFlex, findxTrad, formatArcsPF, minMax, parseConst, simulationInputs } from '../../utils/utilGeneral'
 import { Center, Flex, Grid, Img } from '../blocks/blockAPI'
 import { DropdownConst } from '../simulator/Dropdown'
-import { VisGraph } from '../../config'
-import { drawVisualisationGraph } from '../../utils/draw'
+import { VisGraph2 } from '../../config'
+import { drawVisualisationGraph2 } from '../../utils/draw'
 import { filterParetoOptimal } from '../../utils/optimise'
 import SetupPanel from '../simulator/SetupPanel'
 
-export default function VisualiserSideBar({ inputs, results, visuResults, updateVisuResults, playing, setPlaying, currentStep, updateStep, setPlayspeed, keyboardListener, setPanel }) {
+export default function VisualiserSideBar2({ inputs, results, visuResults, viewSidebar, updateVisuResults, playing, setPlaying, currentStep, updateStep, setPlayspeed, keyboardListener, setPanel }) {
 
   const simulation = useRef()
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 })
@@ -21,36 +21,36 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
     if (!visuResults) generateScenario()
 
     keyboardListener.current.addEvent({
-      conditions: ['KeyQ', 'ArrowRight'],
+      conditions: ['KeyE'],
       action: () => alterDropdown('#c-r', 'increment')
     })
     keyboardListener.current.addEvent({
-      conditions: ['KeyQ', 'ArrowLeft'],
+      conditions: ['KeyQ'],
       action: () => alterDropdown('#c-r', 'decrement')
     })
     keyboardListener.current.addEvent({
-      conditions: ['KeyA', 'ArrowRight'],
+      conditions: ['KeyD'],
       action: () => alterDropdown('#c-rec', 'increment')
     })
     keyboardListener.current.addEvent({
-      conditions: ['KeyA', 'ArrowLeft'],
+      conditions: ['KeyA'],
       action: () => alterDropdown('#c-rec', 'decrement')
     })
     keyboardListener.current.addEvent({
-      conditions: ['KeyZ', 'ArrowRight'],
+      conditions: ['KeyC'],
       action: () => alterDropdown('#c-v', 'increment')
     })
     keyboardListener.current.addEvent({
-      conditions: ['KeyZ', 'ArrowLeft'],
+      conditions: ['KeyZ'],
       action: () => alterDropdown('#c-v', 'decrement')
     })
     keyboardListener.current.addEvent({
       conditions: ['ArrowUp'],
-      action: () => alterDropdown('#c-type', 'decrement')
+      action: () => alterDropdown('#c-type', 'decrement', false)
     })
     keyboardListener.current.addEvent({
       conditions: ['ArrowDown'],
-      action: () => alterDropdown('#c-type', 'increment')
+      action: () => alterDropdown('#c-type', 'increment', false)
     })
     keyboardListener.current.addEvent({
       conditions: ['KeyS'],
@@ -63,7 +63,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
 
   }, [])
 
-  function alterDropdown(str, mode) {
+  function alterDropdown(str, mode, regen=true) {
     const dropdown = document.querySelector(str)
     if (mode === 'increment') {
       if (dropdown.selectedIndex === dropdown.options.length - 1) dropdown.selectedIndex = 0
@@ -72,12 +72,13 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
       if (dropdown.selectedIndex === 0) dropdown.selectedIndex = dropdown.options.length - 1
       else dropdown.selectedIndex--
     }
-    generateScenario()
+    if (regen) generateScenario()
+    else runScenario()
   }
 
   const paramRanges = calcResultParamRanges(inputs)
 
-  if (visuResults) drawVisualisationGraph(visuResults, simulation.current, currentStep, canvasSize)
+  if (visuResults) drawVisualisationGraph2(visuResults, simulation.current, currentStep, canvasSize)
 
   function getCaseParams() {
     return {
@@ -165,20 +166,20 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
   function selectTimeFromGraph(e) {
     if (!simulation.current) return
     const rect = e.target.getBoundingClientRect();
-    const V_GRAPH_WIDTH = canvasSize.w - VisGraph.LEFT - VisGraph.RIGHT
-    const x = e.clientX - rect.x - VisGraph.LEFT
+    const V_GRAPH_WIDTH = canvasSize.w - VisGraph2.LEFT - VisGraph2.RIGHT
+    const x = e.clientX - rect.x - VisGraph2.LEFT
     const proportion = minMax(0, x / V_GRAPH_WIDTH, 1)
     const selectedStep = Math.round(proportion * simulation.current.inputs.steps)
     updateStep(() => selectedStep)
   }
 
   return (
-    <Flex f='FSVS' w='600px' cn='h100 rig bc2 ct1' p='20px 0 0 0'>
+    <Flex f='FSVS' w={viewSidebar ? '1400px' : '0px'} cn='h100 rig bc2 ct1 ov-h' p='0 0 0 0'>
 
-      <Flex f='FSVS rel w100' p='0 30px'>
+      <Flex f='FSVS rel w100 none' p='0 30px'>
         <Flex f='FS' cn='font-title'>Inputs</Flex>
 
-        <Center cn='w100 bc2-3' h='1px' m='10px 0' />
+        <Center cn='w100 bc2-3' h='1px' m='0' />
 
         <Flex f='FBS' cn='w100'>
 
@@ -219,11 +220,11 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
       </Flex>
 
 
-      <Flex f='FSVS rel grow w100' p='0' mt='35px'>
+      <Flex f='FSVS rel grow w100' p='0'>
 
-        <Flex f='FSVS' cn='w100 rel' p='0 30px'>
+        <Flex f='FSVS' cn='w100 rel none' p='0 30px'>
           <Flex f='FS' cn='font-title'>Simulation</Flex>
-          <Center cn='w100 bc2-3' h='1px' m='13px 0' />
+          <Center cn='w100 bc2-3' h='1px' m='0' />
           <Flex f='FB' cn='w100 rel' t='-5px'>
             <DropdownConst id='simu-speed' name='Speed' options={['slow', 'medium', 'fast']} lw='43px' w='130px' onChange={e => updatePlayspeed(e)} />
             <Flex f='FS'>
@@ -261,7 +262,7 @@ export default function VisualiserSideBar({ inputs, results, visuResults, update
           </Flex>
         </Flex>
 
-        <Center id='canvas-container' bc='#fff' mt='20px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
+        <Center id='canvas-container' bc='#fff' mt='80px' cn={`rel w100 grow ${simulation.current ? 'ptr' : ''}`} oc={e => selectTimeFromGraph(e)}>
           <canvas id='visu-canvas' width={canvasSize.w} height={canvasSize.h} style={{ 'width': `${canvasSize.w}px`, 'height': `${canvasSize.h}px` }}></canvas>
         </Center>
 
